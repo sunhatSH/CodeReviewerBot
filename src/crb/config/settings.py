@@ -28,6 +28,7 @@ class PythonAnalyzerConfig:
     )
     style_enabled: bool = True
     orphan_enabled: bool = True
+    cpp_analyzer_path: str = ""  # Path to C++ static analyzer binary (auto-discovered if empty)
 
 
 @dataclass

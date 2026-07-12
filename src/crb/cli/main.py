@@ -487,6 +487,46 @@ def review(paths, lang, sort, output, report_dir, output_lang, exclude, no_react
             _write_report(sec_report, report_dir, f"{project_name}_security", output, project_root=project_root, app_config=config, no_react=no_react)
 
 
+@cli.command(name="build-analyzer")
+def build_cpp_analyzer():
+    """Build the C++ static analyzer for faster Python analysis."""
+    import subprocess
+
+    c_src = Path(__file__).resolve().parent.parent.parent.parent / "c_src"
+    build_dir = c_src / "build"
+
+    if not (c_src / "CMakeLists.txt").exists():
+        click.echo("Error: c_src/CMakeLists.txt not found.", err=True)
+        raise SystemExit(1)
+
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    click.echo("Configuring C++ analyzer...")
+    cfg = subprocess.run(
+        ["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"],
+        cwd=str(build_dir), capture_output=True, text=True,
+    )
+    if cfg.returncode != 0:
+        click.echo(f"CMake configure failed:\n{cfg.stderr}", err=True)
+        raise SystemExit(1)
+
+    click.echo("Building C++ analyzer...")
+    bld = subprocess.run(
+        ["cmake", "--build", ".", "-j4"],
+        cwd=str(build_dir), capture_output=True, text=True,
+    )
+    if bld.returncode != 0:
+        click.echo(f"Build failed:\n{bld.stderr}", err=True)
+        raise SystemExit(1)
+
+    binary = build_dir / "static_analyzer"
+    if binary.exists():
+        click.echo(f"Built: {binary}")
+        click.echo("Done. C++ analyzer will be used automatically on next review.")
+    else:
+        click.echo("Build succeeded but binary not found.", err=True)
+
+
 @cli.command(name="list-langs")
 def list_langs():
     """List supported programming languages."""

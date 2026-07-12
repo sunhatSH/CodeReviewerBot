@@ -18,8 +18,8 @@ config.json
 structure-data.json
 structure-viewer.html
 
-# Generated structure docs (per-module structure.md)
-*_structure*.md
+# Generated structure docs (per-module structure*.md)
+structure*.md
 
 # Generated call chain reports
 *_call_chain.md
@@ -32,6 +32,9 @@ structure-viewer.html
 # OS
 .DS_Store
 Thumbs.db
+
+# C++ static analyzer (build artifacts)
+c_src/build/
 
 # Environment
 .env

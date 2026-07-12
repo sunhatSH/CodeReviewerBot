@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -10,6 +13,71 @@ from crb.config.settings import AppConfig, PythonAnalyzerConfig
 from crb.report.models import Finding, FindingCategory, OutputLang, ReviewReport, Severity, _finding_msg
 
 from . import bloat_detector, bug_detector, comment_detector, complexity, dead_code_detector, dependency_detector, design_detector, edge_case_detector, orphan_detector, retry_detector, style_checker, test_theater_detector, third_party_suggester, auth_detector, layered_test_detector
+
+
+_SEVERITY_MAP = {
+    "MAJOR": Severity.MAJOR,
+    "CRITICAL": Severity.CRITICAL,
+    "BLOCKER": Severity.BLOCKER,
+}
+
+_CATEGORY_MAP = {
+    "complexity": FindingCategory.COMPLEXITY,
+    "bug": FindingCategory.BUG,
+    "style": FindingCategory.STYLE,
+    "design": FindingCategory.DESIGN,
+    "documentation": FindingCategory.DOCUMENTATION,
+    "io": FindingCategory.CONSISTENCY,
+}
+
+
+def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
+    """Find the C++ static analyzer binary."""
+    if cfg.cpp_analyzer_path:
+        path = cfg.cpp_analyzer_path
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+        return None
+
+    # Auto-discover relative to this source file or cwd
+    candidates = [
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "c_src", "build", "static_analyzer"),
+        os.path.join(os.getcwd(), "c_src", "build", "static_analyzer"),
+        "static_analyzer",  # in PATH
+    ]
+    for c in candidates:
+        c = os.path.abspath(c)
+        if os.path.isfile(c) and os.access(c, os.X_OK):
+            return c
+    return None
+
+
+def _run_cpp_analyzer(binary: str, files: list[str]) -> list[Finding]:
+    """Run the C++ static analyzer and parse its JSON output into Findings."""
+    try:
+        result = subprocess.run(
+            [binary] + files,
+            capture_output=True, text=True, timeout=120,
+        )
+        if result.returncode != 0:
+            return []
+        data = json.loads(result.stdout)
+    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        return []
+
+    findings: list[Finding] = []
+    for item in data if isinstance(data, list) else []:
+        severity = _SEVERITY_MAP.get(item.get("severity", ""), Severity.MAJOR)
+        category = _CATEGORY_MAP.get(item.get("category", ""), FindingCategory.CONSISTENCY)
+        findings.append(Finding(
+            file=item.get("file", ""),
+            line=item.get("line", 0),
+            severity=severity,
+            category=category,
+            title=item.get("title", ""),
+            message=item.get("message", ""),
+        ))
+    return findings
 
 
 def analyze_files(
@@ -77,51 +145,54 @@ def analyze_files(
         )
         return report
 
-    # 1. Complexity analysis
-    for fpath in all_files:
-        for finding in complexity.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
+    # 0. C++ static analyzer (fast path — replaces many per-file Python analyzers)
+    cpp_binary = _find_cpp_analyzer(py_config)
+    cpp_used = False
+    if cpp_binary:
+        cpp_findings = _run_cpp_analyzer(cpp_binary, all_files)
+        if cpp_findings:
+            for f in cpp_findings:
+                report.add_finding(f)
+            cpp_used = True
 
-    # 2. Code bloat detection (AI growth patterns)
-    for fpath in all_files:
-        for finding in bloat_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 3. Bug detection
-    for fpath in all_files:
-        for finding in bug_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 4. Edge case detection
-    for fpath in all_files:
-        for finding in edge_case_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 5. Design/extensibility review
-    for fpath in all_files:
-        for finding in design_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 6. Dead code / stale documentation detection
-    for fpath in all_files:
-        for finding in dead_code_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 7. Documentation/comment redundancy detection
-    for fpath in all_files:
-        for finding in comment_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 8. Retry detection
-    for fpath in all_files:
-        for finding in retry_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
-            report.add_finding(finding)
-
-    # 9. Code style (always last in report for findings)
-    if py_config.style_enabled:
+    # 1-9. Per-file static analysis (skip when C++ analyzer is active)
+    if not cpp_used:
         for fpath in all_files:
-            for finding in style_checker.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            for finding in complexity.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
                 report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in bloat_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in bug_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in edge_case_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in design_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in dead_code_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in comment_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        for fpath in all_files:
+            for finding in retry_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
+
+        if py_config.style_enabled:
+            for fpath in all_files:
+                for finding in style_checker.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                    report.add_finding(finding)
 
     # 10. Third-party library suggestions (lightweight hints)
     for fpath in all_files:
