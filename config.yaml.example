@@ -1,0 +1,29 @@
+# CodeReviewerBot configuration example
+# Copy to config.yaml and replace placeholder values.
+
+REPORT_DIR: "report"
+
+SORT_ORDER:
+  - "Blocker"
+  - "Critical"
+  - "Major"
+
+PYTHON_ANALYZER:
+  COMPLEXITY:
+    CYCLOMATIC_THRESHOLD: 10
+    FUNCTION_LINES_THRESHOLD: 50
+    CLASS_LINES_THRESHOLD: 200
+    NESTING_DEPTH_THRESHOLD: 4
+  RETRY:
+    MAX_RETRIES: 3
+  IGNORE_DECORATORS:
+    - "complex_func"
+  STYLE_ENABLED: true
+
+# LLM configuration — also reads from env vars:
+#   CRB_LLM_API_URL, CRB_LLM_API_KEY, CRB_LLM_MODEL
+# Env vars take precedence over config file.
+LLM:
+  API_URL: "https://api.openai.com/v1"
+  API_KEY: "<YOUR_API_KEY>"
+  MODEL: "gpt-4o"
