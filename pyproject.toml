@@ -20,4 +20,8 @@ build-backend = "setuptools.build_meta"
 where = ["src"]
 
 [tool.setuptools.package-data]
-crb = ["c_src/build/static_analyzer"]
+crb = [
+    "c_src/CMakeLists.txt",
+    "c_src/static_analyzer.cpp",
+    "c_src/third_party/json.hpp",
+]

@@ -31,11 +31,23 @@ _CATEGORY_MAP = {
 }
 
 
+def _verify_binary(binary: str) -> bool:
+    """Verify the binary actually runs on this platform."""
+    try:
+        result = subprocess.run(
+            [binary], capture_output=True, text=True, timeout=5,
+        )
+        # Expect exit code 1 (usage shown with no args), not a crash
+        return result.returncode == 1
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
     """Find or auto-build the C++ static analyzer binary."""
     if cfg.cpp_analyzer_path:
         path = cfg.cpp_analyzer_path
-        if os.path.isfile(path) and os.access(path, os.X_OK):
+        if os.path.isfile(path) and os.access(path, os.X_OK) and _verify_binary(path):
             return path
         return None
 
@@ -47,7 +59,7 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
     for root in search_roots:
         root = os.path.abspath(root)
         binary = os.path.join(root, "c_src", "build", "static_analyzer")
-        if os.path.isfile(binary) and os.access(binary, os.X_OK):
+        if os.path.isfile(binary) and os.access(binary, os.X_OK) and _verify_binary(binary):
             return binary
 
     # Not found — try to auto-build if CMakeLists.txt exists
