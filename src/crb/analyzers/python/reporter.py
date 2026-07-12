@@ -92,23 +92,29 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
 
 
 def _run_cpp_analyzer(binary: str, files: list[str]) -> list[Finding]:
-    """Run the C++ static analyzer and parse its JSON output into Findings."""
-    try:
-        result = subprocess.run(
-            [binary] + files,
-            capture_output=True, text=True, timeout=120,
-        )
-        if result.returncode != 0:
-            return []
-        data = json.loads(result.stdout)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
-        return []
+    """Run the C++ static analyzer and parse its JSON output into Findings.
 
+    Processes files in batches of 100 to avoid ARG_MAX limits on long file lists.
+    """
     findings: list[Finding] = []
-    for item in data if isinstance(data, list) else []:
-        severity = _SEVERITY_MAP.get(item.get("severity", ""), Severity.MAJOR)
-        category = _CATEGORY_MAP.get(item.get("category", ""), FindingCategory.CONSISTENCY)
-        findings.append(Finding(
+    batch_size = 100
+    for i in range(0, len(files), batch_size):
+        batch = files[i:i + batch_size]
+        try:
+            result = subprocess.run(
+                [binary] + batch,
+                capture_output=True, text=True, timeout=120,
+            )
+            if result.returncode != 0:
+                continue
+            data = json.loads(result.stdout)
+        except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+            continue
+
+        for item in data if isinstance(data, list) else []:
+            severity = _SEVERITY_MAP.get(item.get("severity", ""), Severity.MAJOR)
+            category = _CATEGORY_MAP.get(item.get("category", ""), FindingCategory.CONSISTENCY)
+            findings.append(Finding(
             file=item.get("file", ""),
             line=item.get("line", 0),
             severity=severity,
