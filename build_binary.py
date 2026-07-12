@@ -12,6 +12,13 @@ import sys
 def main():
     repo_root = os.path.abspath(os.path.dirname(__file__))
     src_crb = os.path.join(repo_root, "src", "crb")
+
+    # Ensure project dependencies are installed so PyInstaller can bundle them
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", ".",
+        "-q", "--no-build-isolation",
+    ])
+
     separator = ";" if sys.platform == "win32" else ":"
     subprocess.check_call([
         sys.executable, "-m", "PyInstaller",
