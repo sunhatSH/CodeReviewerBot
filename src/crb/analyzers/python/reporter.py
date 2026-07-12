@@ -34,8 +34,14 @@ def analyze_files(
 
     py_config: PythonAnalyzerConfig = config.python
 
+    # Summarize target: show directory or count instead of all file paths
+    if len(file_paths) > 5:
+        common = os.path.commonpath([str(p) for p in file_paths])
+        target = f"{len(file_paths)} Python files in {common}"
+    else:
+        target = ", ".join(str(p) for p in file_paths)
     report = ReviewReport(
-        target=", ".join(str(p) for p in file_paths),
+        target=target,
         lang=OutputLang(output_lang),
     )
 

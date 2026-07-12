@@ -295,8 +295,6 @@ def generate_hierarchical_structure_docs(all_files: list[str], output_dir: str) 
         doc_dir = base_dir / rel_dir if rel_dir else base_dir
         doc_dir.mkdir(parents=True, exist_ok=True)
         doc_path = doc_dir / "structure.md"
-        doc_path_zh = doc_dir / "structure_zh.md"
-        doc_path_en = doc_dir / "structure_en.md"
 
         mermaid = build_mermaid_diagram(all_files, subdir=subdir)
         mermaid_block = ""
@@ -318,12 +316,8 @@ def generate_hierarchical_structure_docs(all_files: list[str], output_dir: str) 
         back_nav = f"[⬆ 返回顶层结构](../structure.md)\n" if rel_dir and "/" not in rel_dir else ""
 
         zh_title = {"Project Structure Overview": "项目结构总览"}.get(title, title)
-        zh_content = f"# {zh_title}\n\n{back_nav}\n{mermaid_block}{file_tree_block}{module_nav}"
-        doc_path.write_text(zh_content, encoding="utf-8")
-        doc_path_zh.write_text(zh_content, encoding="utf-8")
-
-        en_content = f"# {title}\n\n[⬆ Back to top structure](../structure_en.md)\n\n{mermaid_block}{file_tree_block}{module_nav}"
-        doc_path_en.write_text(en_content, encoding="utf-8")
+        content = f"# {zh_title}\n\n{back_nav}\n{mermaid_block}{file_tree_block}{module_nav}"
+        doc_path.write_text(content, encoding="utf-8")
 
         return str(doc_path)
 

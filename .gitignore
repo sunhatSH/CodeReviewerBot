@@ -14,9 +14,12 @@ config.json
 # Reports (root-level generated output)
 /report/
 
-# Generated structure viewer (overwritten on each review)
+# Generated structure viewer / data (root-level only — subdirs covered by /report/)
 structure-data.json
 structure-viewer.html
+
+# Generated structure docs (per-module structure.md)
+*_structure*.md
 
 # Generated call chain reports
 *_call_chain.md

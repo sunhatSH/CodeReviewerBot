@@ -200,13 +200,16 @@ def _write_structure_viewer(report: ReviewReport, output_dir: str) -> None:
     """Write structure-data.json and structure-viewer.html for human browsing."""
     import json
 
+    viewer_dir = Path(output_dir) / "viewer"
+    viewer_dir.mkdir(parents=True, exist_ok=True)
+
     all_files = report.all_files or []
-    data = _build_structure_json(all_files, output_dir)
-    json_path = Path(output_dir) / "structure-data.json"
+    data = _build_structure_json(all_files, viewer_dir)
+    json_path = viewer_dir / "structure-data.json"
     json_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     html = _STRUCTURE_VIEWER_TEMPLATE.replace("__STRUCTURE_DATA__", json.dumps(data, ensure_ascii=False))
-    html_path = Path(output_dir) / "structure-viewer.html"
+    html_path = viewer_dir / "structure-viewer.html"
     html_path.write_text(html, encoding="utf-8")
     click.echo(f"Structure viewer: {html_path}")
 
@@ -259,9 +262,9 @@ def _write_report(
         for sp in structure_paths:
             click.echo(f"Structure doc: {sp}")
 
-        # Write structure data JSON + React viewer (unless --no-react)
+        # Write structure data JSON + React viewer to report/viewer/ (unless --no-react)
         if not no_react:
-            _write_structure_viewer(report, structure_root)
+            _write_structure_viewer(report, report_dir)
 
         # Enhance structure docs with LLM
         if project_root and app_config and app_config.llm.is_valid():
@@ -408,7 +411,7 @@ def review(paths, lang, sort, output, report_dir, output_lang, exclude, no_react
                 part.startswith(".") or part == "archived" or part == "__pycache__"
                 or part == "build" or part == "dist" or part == "node_modules" or part == "report"
                 for part in f.parts
-            ) and f.name not in ("structure.md", "structure_zh.md", "structure_en.md"):
+            ) and f.name not in ("structure.md",):
                 all_project_files.append(str(f))
 
     # Apply --exclude patterns

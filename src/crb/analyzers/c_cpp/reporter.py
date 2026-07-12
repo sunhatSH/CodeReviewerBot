@@ -6,12 +6,20 @@ Full AST analysis requires tree-sitter-c or a native tool.
 
 from __future__ import annotations
 
+import os
 from typing import Optional
 
 from crb.config.settings import AppConfig
 from crb.report.models import Finding, FindingCategory, OutputLang, ReviewReport, Severity
 
 from ..generic import analyze_file
+
+
+def _summarize_target(file_paths: list[str]) -> str:
+    if len(file_paths) > 5:
+        common = os.path.commonpath([str(p) for p in file_paths])
+        return f"{len(file_paths)} files in {common}"
+    return ", ".join(str(p) for p in file_paths)
 
 
 def analyze_files(
@@ -22,7 +30,7 @@ def analyze_files(
 ) -> ReviewReport:
     """Analyze C/C++ source files for code quality issues."""
     report = ReviewReport(
-        target=", ".join(str(p) for p in file_paths),
+        target=_summarize_target(file_paths),
         lang=OutputLang(output_lang),
     )
     if sort_order:
