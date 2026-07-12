@@ -28,13 +28,6 @@ jobs:
           pip install .
           pip install pytest
 
-      - name: Debug - check install
-        run: |
-          python -c "import sys; sys.path.insert(0, 'src'); import crb.report; print('crb.report OK:', crb.report.__file__)" 2>&1 || true
-          python -c "import sys; print([p for p in sys.path if 'site-packages' in p])"
-          python -c "import crb; print(crb.__file__); import crb.report; print(crb.report.__file__)" 2>&1 || echo "crb.report FAIL"
-          pip show -f codereviewerbot 2>/dev/null | grep report
-
       - name: Run tests
         run: |
           python -m pytest tests/ -v

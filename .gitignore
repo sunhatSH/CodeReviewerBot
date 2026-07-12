@@ -11,8 +11,8 @@ config.yaml
 config.toml
 config.json
 
-# Reports
-report/
+# Reports (root-level generated output)
+/report/
 
 # IDE
 .idea/
