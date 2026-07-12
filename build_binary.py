@@ -12,7 +12,7 @@ import sys
 def main():
     repo_root = os.path.abspath(os.path.dirname(__file__))
     src_crb = os.path.join(repo_root, "src", "crb")
-    separator = ";" if sys.platform == "darwin" else ":"
+    separator = ";" if sys.platform == "win32" else ":"
     subprocess.check_call([
         sys.executable, "-m", "PyInstaller",
         "--onefile",
