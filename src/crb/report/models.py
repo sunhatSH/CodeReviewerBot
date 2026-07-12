@@ -3,12 +3,15 @@
 from __future__ import annotations
 
 import ast
+import json
 import os
 import re
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Optional
+
+from crb.report import structure_builder as sb
 
 
 class Severity(str, Enum):
@@ -641,120 +644,31 @@ class ReviewReport:
         return sum(1 for f in self.findings if f.severity == Severity.MAJOR)
 
     @staticmethod
-    def _extract_symbols(file_path: str) -> list[str]:
-        """Extract class and function names from a source file."""
-        symbols: list[str] = []
-        ext = os.path.splitext(file_path)[1].lower()
-        try:
-            if ext == ".py":
-                with open(file_path) as f:
-                    tree = ast.parse(f.read())
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.ClassDef):
-                        symbols.append(f"class {node.name}")
-                    elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-                        symbols.append(f"def {node.name}()")
-            elif ext in (".c", ".h", ".cpp", ".hpp", ".cc", ".cxx", ".hh", ".hxx"):
-                with open(file_path) as f:
-                    content = f.read()
-                for m in re.finditer(
-                    r"^\s*(?:static\s+|inline\s+|virtual\s+)?"
-                    r"(?:int|void|char|float|double|long|short|unsigned|signed|"
-                    r"size_t|bool|string|auto|const|volatile|struct|class|"
-                    r"\w+_t|FILE|char\*|void\*)\s*(\w+)\s*\(",
-                    content, re.MULTILINE,
-                ):
-                    symbols.append(f"def {m.group(1)}()")
-            elif ext == ".go":
-                with open(file_path) as f:
-                    content = f.read()
-                for m in re.finditer(
-                    r"^\s*(?:func\s+)(?:\([^)]*\)\s+)?(\w+)\s*\(",
-                    content, re.MULTILINE,
-                ):
-                    symbols.append(f"func {m.group(1)}()")
-            elif ext == ".rs":
-                with open(file_path) as f:
-                    content = f.read()
-                for m in re.finditer(
-                    r"^\s*(?:pub\s+)?(?:fn\s+)(\w+)\s*[\(<]",
-                    content, re.MULTILINE,
-                ):
-                    symbols.append(f"fn {m.group(1)}()")
-        except (SyntaxError, OSError, UnicodeDecodeError):
-            pass
-        return symbols
+    def _extract_symbols(file_path: str) -> list[tuple[str, list[str]]]:
+        """Extract symbols from a source file. Delegates to structure_builder."""
+        return sb.extract_symbols(file_path)
 
-    def _build_file_tree(self) -> str:
-        """Generate a full project file tree with class/function symbols."""
-        # Determine root directory
-        root_dir: str | None = None
-        if self.all_files:
-            normalized = [fp.replace(os.sep, "/").rstrip("/") for fp in self.all_files]
-            common = os.path.commonprefix(normalized)
-            if "/" in common:
-                common = common[: common.rfind("/") + 1]
-            if common.strip("/"):
-                root_dir = common
-        if not root_dir and self.target:
-            root_dir = self.target
-        if not root_dir or not os.path.isdir(root_dir):
-            return "(no project root)"
+    def _build_file_tree(self, subdir: str | None = None) -> str:
+        """Generate a project file tree. Delegates to structure_builder."""
+        return sb.build_file_tree(self.all_files, subdir=subdir)
 
-        # Build nested dict of the directory tree with symbols
-        tree: dict = {}
-        ignore_patterns = (".git", ".DS_Store", "__pycache__", "build", "node_modules", ".egg-info")
-        ignore_suffixes = (".egg-info", ".pyc")
-        root_path = Path(root_dir)
+    def _render_tree(self, node: dict, lines: list[str], prefix: str) -> None:
+        sb._render_tree(node, lines, prefix)
 
-        for entry in sorted(root_path.rglob("*")):
-            rel = entry.relative_to(root_path).as_posix()
-            if any(
-                part.startswith(".") or part in ignore_patterns
-                or any(part.endswith(suf) for suf in ignore_suffixes)
-                for part in entry.parts
-            ):
-                continue
+    def _render_symbols(self, symbols, lines, prefix, has_more_after):
+        sb._render_symbols(symbols, lines, prefix, has_more_after)
 
-            parts = rel.split("/")
-            node = tree
-            for i, part in enumerate(parts):
-                if i == len(parts) - 1 and entry.is_file():
-                    # File node — add symbols as children
-                    symbols = self._extract_symbols(str(entry))
-                    node = node.setdefault(part, {"__symbols__": symbols} if symbols else {})
-                else:
-                    node = node.setdefault(part, {})
+    def _build_mermaid_diagram(self, subdir: str | None = None) -> str:
+        """Generate a Mermaid flowchart. Delegates to structure_builder."""
+        return sb.build_mermaid_diagram(self.all_files, subdir=subdir)
 
-        # Render
-        root_name = root_path.name
-        lines = ["```"]
-        lines.append(root_name)
-        self._render_tree(tree, lines, prefix="")
-        lines.append("```")
-        return "\n".join(lines)
+    def generate_hierarchical_structure_docs(self, output_dir: str) -> list[str]:
+        """Generate hierarchical structure docs. Delegates to structure_builder."""
+        return sb.generate_hierarchical_structure_docs(self.all_files, output_dir)
 
-    def _render_tree(
-        self, node: dict, lines: list[str], prefix: str
-    ) -> None:
-        items = sorted((k, v) for k, v in node.items() if not k.startswith("__"))
-        for i, (name, subtree) in enumerate(items):
-            is_last = i == len(items) - 1
-            connector = "└── " if is_last else "├── "
-            lines.append(f"{prefix}{connector}{name}")
-            extension = "    " if is_last else "│   "
-
-            # Render symbols nested under this file
-            symbols: list[str] = subtree.get("__symbols__", []) if isinstance(subtree, dict) else []
-            children_exist = subtree and any(not k.startswith("__") for k in subtree)
-            for si, sym in enumerate(symbols):
-                sym_last = si == len(symbols) - 1 and not children_exist
-                sym_conn = "└── " if sym_last else "├── "
-                lines.append(f"{prefix}{extension}{sym_conn}{sym}")
-
-            # Render children (subdirectories, other files)
-            if children_exist:
-                self._render_tree(subtree, lines, prefix + extension)
+    def generate_structure_json(self, output_dir: str) -> dict:
+        """Build structured JSON data. Delegates to structure_builder."""
+        return sb.generate_structure_json(self.all_files, output_dir)
 
     def to_markdown(self) -> str:
         self.sort_findings()
@@ -764,11 +678,9 @@ class ReviewReport:
         lines.append(f"# {L('code_review_report')}\n")
         lines.append(f"**{L('target')}**: {self.target}\n")
 
-        # File tree overview
+        # Reference to separate structure doc
         lines.append("---\n")
-        lines.append("### Project Structure\n")
-        lines.append(self._build_file_tree())
-        lines.append("")
+        lines.append("> 项目结构总览见 [../structure.md](../structure.md)\n")
         lines.append("---\n")
         lines.append(
             f"**{L('summary')}**: "

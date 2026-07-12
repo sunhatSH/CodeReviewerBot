@@ -14,6 +14,10 @@ config.json
 # Reports (root-level generated output)
 /report/
 
+# Generated structure viewer (overwritten on each review)
+structure-data.json
+structure-viewer.html
+
 # IDE
 .idea/
 .vscode/

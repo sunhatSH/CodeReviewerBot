@@ -23,6 +23,7 @@ class _StyleVisitor(ast.NodeVisitor):
         self.lang = lang
         self.findings: list[Finding] = []
         self._import_count = 0
+        self._in_function = 0  # nesting counter for function/asyncfunction defs
 
     def _check_wildcard(self, names: list[ast.alias], lineno: int) -> None:
         for alias in names:
@@ -68,8 +69,21 @@ class _StyleVisitor(ast.NodeVisitor):
             )
         )
 
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
+        self._in_function += 1
+        self.generic_visit(node)
+        self._in_function -= 1
+
+    def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
+        self._in_function += 1
+        self.generic_visit(node)
+        self._in_function -= 1
+
     def visit_Name(self, node: ast.Name) -> None:
         # Check for single-character names (excluding common loop vars)
+        # Skip local variables inside functions — function scope is small enough
+        if self._in_function > 0:
+            return
         if (
             len(node.id) == 1
             and isinstance(node.ctx, ast.Store)

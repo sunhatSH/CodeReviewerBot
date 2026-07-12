@@ -88,7 +88,7 @@ class _BugVisitor(ast.NodeVisitor):
     def visit_Compare(self, node: ast.Compare) -> None:
         for op, comparator in zip(node.ops, node.comparators):
             if isinstance(op, (ast.Eq, ast.NotEq)):
-                if isinstance(comparator, ast.Constant) and comparator.value in (None, True, False):
+                if isinstance(comparator, ast.Constant) and (comparator.value is None or comparator.value is True or comparator.value is False):
                     op_name = "==" if isinstance(op, ast.Eq) else "!="
                     const_name = repr(comparator.value)
                     title, msg, suggestion = _finding_msg(
