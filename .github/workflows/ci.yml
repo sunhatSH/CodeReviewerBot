@@ -24,8 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install --upgrade setuptools
-          pip install -e .
+          pip install --upgrade setuptools wheel
+          pip install .
           pip install pytest
 
       - name: Run tests
