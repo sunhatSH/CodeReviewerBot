@@ -18,6 +18,9 @@ config.json
 structure-data.json
 structure-viewer.html
 
+# Generated call chain reports
+*_call_chain.md
+
 # IDE
 .idea/
 .vscode/

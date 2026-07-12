@@ -218,6 +218,7 @@ def _write_report(
     output_format: str,
     project_root: str | None = None,
     app_config: AppConfig | None = None,
+    no_react: bool = False,
 ) -> None:
     """Write report and structure docs to disk."""
     report_path = Path(report_dir) / f"{project_name}_report.md"
@@ -258,8 +259,9 @@ def _write_report(
         for sp in structure_paths:
             click.echo(f"Structure doc: {sp}")
 
-        # Write structure data JSON + React viewer for human browsing
-        _write_structure_viewer(report, structure_root)
+        # Write structure data JSON + React viewer (unless --no-react)
+        if not no_react:
+            _write_structure_viewer(report, structure_root)
 
         # Enhance structure docs with LLM
         if project_root and app_config and app_config.llm.is_valid():
@@ -319,7 +321,11 @@ def cli() -> None:
     "--exclude", multiple=True, default=[],
     help="Exclude files/dirs matching glob pattern. Can be repeated. E.g.: --exclude 'data/*' --exclude '*.txt'",
 )
-def review(paths, lang, sort, output, report_dir, output_lang, exclude):
+@click.option(
+    "--no-react", is_flag=True, default=False,
+    help="Skip generating the React structure viewer page.",
+)
+def review(paths, lang, sort, output, report_dir, output_lang, exclude, no_react):
     """Review source code in PATHS (files or directories).
 
     Detects language automatically from file extensions unless --lang is given.
@@ -437,7 +443,7 @@ def review(paths, lang, sort, output, report_dir, output_lang, exclude):
         click.echo(f"Analyzing {len(lang_files)} {detection.label(target_lang)} file(s)...")
         report = _run_analyzer(target_lang, lang_files, config, sort_order, output_lang)
         report.all_files = all_project_files
-        _write_report(report, report_dir, project_name, output, project_root=project_root, app_config=config)
+        _write_report(report, report_dir, project_name, output, project_root=project_root, app_config=config, no_react=no_react)
 
     # Cross-language structure analysis (AI code spread detection)
     if all_project_files and len(all_project_files) >= 5:
@@ -450,7 +456,17 @@ def review(paths, lang, sort, output, report_dir, output_lang, exclude):
             for f in struct_findings:
                 struct_report.add_finding(f)
             struct_report.all_files = all_project_files
-            _write_report(struct_report, report_dir, f"{project_name}_structure", output, project_root=project_root, app_config=config)
+            _write_report(struct_report, report_dir, f"{project_name}_structure", output, project_root=project_root, app_config=config, no_react=no_react)
+
+    # Call chain report (main logic flow with clickable file links)
+    if project_root and all_project_files:
+        from crb.analyzers.call_chain import generate_call_chain_report
+        cc_path = generate_call_chain_report(
+            project_root, project_name,
+            app_config=config,
+            report_dir=report_dir,
+        )
+        click.echo(f"Call chain: {cc_path}")
 
     # Cross-language security scan (hardcoded secrets in all project files)
     if all_project_files:
@@ -465,7 +481,7 @@ def review(paths, lang, sort, output, report_dir, output_lang, exclude):
             for f in secret_findings:
                 sec_report.add_finding(f)
             sec_report.all_files = all_project_files
-            _write_report(sec_report, report_dir, f"{project_name}_security", output, project_root=project_root, app_config=config)
+            _write_report(sec_report, report_dir, f"{project_name}_security", output, project_root=project_root, app_config=config, no_react=no_react)
 
 
 @cli.command(name="list-langs")
