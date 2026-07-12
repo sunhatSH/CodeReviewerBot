@@ -552,6 +552,54 @@ _MSG_TEMPLATES: dict[str, dict[str, tuple[str, str, str]]] = {
             "Check if this {kind} is still needed: delete if obsolete, or add an explicit reference if dynamically invoked.",
         ),
     },
+    "auth_missing_critical": {
+        "ch": (
+            "鉴权缺失 — 高危",
+            "端点 `{name}` ({path}) 缺少身份认证或授权装饰器，可导致未授权数据修改。",
+            "添加 @login_required 装饰器；如需更细粒度控制，添加 @permission_required 或角色校验装饰器。",
+        ),
+        "en": (
+            "Missing Auth — Critical",
+            "Endpoint `{name}` ({path}) lacks authentication/authorization decorator, allowing unauthorized data mutation.",
+            "Add @login_required decorator; for finer control, add @permission_required or role-checking decorators.",
+        ),
+    },
+    "auth_missing_major": {
+        "ch": (
+            "鉴权缺失 — 中危",
+            "端点 `{name}` ({path}) 缺少身份认证装饰器，可能暴露资源标识符。",
+            "考虑添加 @login_required 装饰器，并验证用户是否有权访问该资源。",
+        ),
+        "en": (
+            "Missing Auth — Moderate",
+            "Endpoint `{name}` ({path}) lacks authentication decorator, potentially exposing resource identifiers.",
+            "Consider adding @login_required and verifying user ownership of the resource.",
+        ),
+    },
+    "auth_missing_minor": {
+        "ch": (
+            "鉴权缺失 — 注意",
+            "路由端点 `{name}` ({path}) 缺少显式身份认证装饰器。",
+            "确认该端点是否应公开访问；如需要认证，添加 @login_required 装饰器。",
+        ),
+        "en": (
+            "Missing Auth — Advisory",
+            "Route endpoint `{name}` ({path}) lacks explicit authentication decorator.",
+            "Verify this endpoint is intended for public access; add @login_required if authentication is needed.",
+        ),
+    },
+    "layered_test_gap": {
+        "ch": (
+            "分层测试覆盖缺失",
+            "函数 `{name}`（在 `{file}` 中）被 {callers} 调用，但没有直接对应的测试代码。",
+            "为该函数添加单元测试，测试其独立行为，而非仅靠调用者测试间接覆盖。",
+        ),
+        "en": (
+            "Missing Layered Test Coverage",
+            "Function `{name}` (in `{file}`) is called by {callers} but has no direct tests.",
+            "Add unit tests for this function to verify its behavior independently, not just through caller tests.",
+        ),
+    },
 }
 
 

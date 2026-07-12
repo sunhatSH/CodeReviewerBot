@@ -9,7 +9,7 @@ from typing import Optional
 from crb.config.settings import AppConfig, PythonAnalyzerConfig
 from crb.report.models import Finding, FindingCategory, OutputLang, ReviewReport, Severity, _finding_msg
 
-from . import bloat_detector, bug_detector, comment_detector, complexity, dead_code_detector, dependency_detector, design_detector, edge_case_detector, orphan_detector, retry_detector, style_checker, test_theater_detector, third_party_suggester
+from . import bloat_detector, bug_detector, comment_detector, complexity, dead_code_detector, dependency_detector, design_detector, edge_case_detector, orphan_detector, retry_detector, style_checker, test_theater_detector, third_party_suggester, auth_detector, layered_test_detector
 
 
 def analyze_files(
@@ -137,5 +137,15 @@ def analyze_files(
         for fpath in test_files:
             for finding in test_theater_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
                 report.add_finding(finding)
+
+    # 14. Auth missing detection
+    for fpath in all_files:
+        for finding in auth_detector.analyze_file(fpath, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 15. Layered test coverage (cross-file analysis)
+    if test_files:
+        for finding in layered_test_detector.analyze_files(all_files, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
 
     return report

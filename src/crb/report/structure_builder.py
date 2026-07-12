@@ -127,7 +127,7 @@ _IGNORE_PARTS = frozenset({
 
 
 def build_file_tree(all_files: list[str], subdir: str | None = None) -> str:
-    """Generate a project file tree with class/function symbols."""
+    """Generate a compact project file tree — files in same dir grouped on one line."""
     root_dir = _find_common_root(all_files)
     if not root_dir:
         return "(no files in scope)"
@@ -150,59 +150,50 @@ def build_file_tree(all_files: list[str], subdir: str | None = None) -> str:
         node = tree
         for i, part in enumerate(parts):
             if i == len(parts) - 1:
-                abs_path = scope_path / "/".join(parts)
-                symbols = extract_symbols(str(abs_path))
-                node = node.setdefault(part, {"__symbols__": symbols} if symbols else {})
+                # Leaf — mark as file (not dict with children)
+                node.setdefault("__files__", []).append(part)
             else:
                 node = node.setdefault(part, {})
 
     root_label = scope_path.name if subdir else Path(root_dir).name
     lines = ["```"]
     lines.append(root_label)
-    _render_tree(tree, lines, prefix="")
+    _render_tree_compact(tree, lines, prefix="")
     lines.append("```")
     return "\n".join(lines)
 
 
-def _render_tree(node: dict, lines: list[str], prefix: str) -> None:
-    items = sorted((k, v) for k, v in node.items() if not k.startswith("__"))
-    for i, (name, subtree) in enumerate(items):
-        is_last = i == len(items) - 1
+def _render_tree_compact(node: dict, lines: list[str], prefix: str) -> None:
+    """Render tree with files grouped on one line per directory."""
+    # Collect child dirs and local files
+    dirs: list[str] = []
+    files: list[str] = []
+    for k, v in node.items():
+        if k == "__files__":
+            files = sorted(v)
+        elif not k.startswith("__"):
+            dirs.append(k)
+
+    # Build combined item list: directories first, then file group
+    items: list[tuple[str, bool]] = [(d, True) for d in sorted(dirs)]
+    if files:
+        file_line = ", ".join(files)
+        items.append((file_line, False))
+
+    last_idx = len(items) - 1
+    for idx, (name, is_dir) in enumerate(items):
+        is_last = idx == last_idx
         connector = "└── " if is_last else "├── "
-        lines.append(f"{prefix}{connector}{name}")
-        extension = "    " if is_last else "│   "
-
-        symbols: list[tuple[str, list[str]]] = (
-            subtree.get("__symbols__", []) if isinstance(subtree, dict) else []
-        )
-        children_exist = subtree and any(not k.startswith("__") for k in subtree)
-        _render_symbols(symbols, lines, prefix + extension, children_exist)
-
-        if children_exist:
-            _render_tree(subtree, lines, prefix + extension)
-
-
-def _render_symbols(
-    symbols: list[tuple[str, list[str]]],
-    lines: list[str],
-    prefix: str,
-    has_more_after: bool,
-) -> None:
-    for si, (sym, children) in enumerate(symbols):
-        sym_last = si == len(symbols) - 1 and not has_more_after
-        sym_conn = "└── " if sym_last else "├── "
-        lines.append(f"{prefix}{sym_conn}{sym}")
-
-        if children:
-            child_prefix = prefix + ("    " if sym_last else "│   ")
-            for ci, child in enumerate(children):
-                child_last = ci == len(children) - 1 and not (has_more_after and si == len(symbols) - 1)
-                child_conn = "└── " if child_last else "├── "
-                lines.append(f"{child_prefix}{child_conn}{child}")
+        if is_dir:
+            lines.append(f"{prefix}{connector}{name}")
+            extension = "    " if is_last else "│   "
+            _render_tree_compact(node[name], lines, prefix + extension)
+        else:
+            lines.append(f"{prefix}{connector}{name}")
 
 
 def build_mermaid_diagram(all_files: list[str], subdir: str | None = None) -> str:
-    """Generate a Mermaid flowchart of the project structure."""
+    """Generate a Mermaid flowchart — directories as nodes, files grouped within."""
     root_dir = _find_common_root(all_files)
     if not root_dir:
         return "(no files to diagram)"
@@ -212,26 +203,42 @@ def build_mermaid_diagram(all_files: list[str], subdir: str | None = None) -> st
     parent_node = scope_path.name
     max_depth = 3
 
-    nodes: set[str] = {parent_node}
-    edges: set[tuple[str, str]] = set()
-
+    # Group files by directory path
+    dir_files: dict[str, list[str]] = {}
     for fp in all_files:
         rel = _normalize_relative(fp, root_path, scope_path)
         if not rel:
             continue
-
         parts = rel.split("/")
-        if len(parts) > max_depth:
+        if len(parts) == 1:
+            dir_files.setdefault(".", []).append(parts[0])
+        else:
+            dir_path = "/".join(parts[:-1])
+            dir_files.setdefault(dir_path, []).append(parts[-1])
+
+    nodes: set[str] = {parent_node}
+    edges: set[tuple[str, str]] = set()
+
+    for dir_path in sorted(dir_files):
+        parts = dir_path.split("/") if dir_path != "." else []
+        total_depth = len(parts)
+
+        if total_depth == 0:
+            continue  # root-relative files are handled separately
+
+        if total_depth > max_depth:
             visible_parts = parts[:max_depth]
             visible_path = "/".join(visible_parts)
             nodes.add(visible_path)
             if max_depth == 1:
                 edges.add((parent_node, visible_path))
             else:
-                edges.add(("/".join(visible_parts[:-1]), visible_path))
+                parent_id = "/".join(visible_parts[:-1])
+                edges.add((parent_id, visible_path))
             nodes.add("...")
             edges.add((visible_path, "..."))
         else:
+            # Add node for each directory depth
             for depth in range(len(parts)):
                 node_id = "/".join(parts[: depth + 1])
                 nodes.add(node_id)
@@ -244,6 +251,10 @@ def build_mermaid_diagram(all_files: list[str], subdir: str | None = None) -> st
     lines = ["```mermaid", "graph TD"]
     for n in sorted(nodes):
         label = n.split("/")[-1]
+        files_in_dir = dir_files.get(n, [])
+        if files_in_dir:
+            count = len(files_in_dir)
+            label = f"{label} ({count})"
         safe_id = n.replace("/", "_").replace(".", "_").replace("-", "_")
         lines.append(f"    {safe_id}[{label}]")
     lines.append("")

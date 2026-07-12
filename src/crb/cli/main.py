@@ -517,3 +517,18 @@ def doctor():
         click.echo(f"✓ LLM response: {reply.strip()}")
     except LLMError as e:
         click.echo(f"✗ LLM connection failed: {e}")
+
+
+@cli.command(name="init-ci")
+@click.argument("path", default=".", required=False)
+def init_ci(path: str) -> None:
+    """Generate CI/CD template files for a target project."""
+    from crb.templates.ci_templates import write_templates, generate_template_report
+
+    project_root = os.path.abspath(path)
+    written = write_templates(project_root)
+    click.echo(f"Generated {len(written)} CI/CD template(s):")
+    for fp in written:
+        click.echo(f"  - {fp}")
+    click.echo()
+    click.echo(generate_template_report(project_root))
