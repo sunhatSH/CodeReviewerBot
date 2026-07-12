@@ -71,10 +71,12 @@ class LLMReviewAgent(BaseAgent):
             return all_findings
 
         # 1. Semantic review on each source file
-        for fp in file_paths:
+        source_files = [fp for fp in file_paths if Path(fp).suffix in (".py", ".go", ".rs", ".cpp", ".c", ".h", ".hpp")]
+        n = len(source_files)
+        for idx, fp in enumerate(source_files, 1):
             p = Path(fp)
-            if p.suffix not in (".py", ".go", ".rs", ".cpp", ".c", ".h", ".hpp"):
-                continue
+            rel = os.path.relpath(fp)
+            print(f"  🔍  LLM semantic [{idx}/{n}] {rel}", flush=True)
             findings = self.semantic_agent.review_file(fp, lang=lang)
             all_findings.extend(findings)
 

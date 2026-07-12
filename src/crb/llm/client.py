@@ -67,6 +67,9 @@ def chat(
             "in environment, or provide via config.yaml."
         )
 
+    model = config.model or "gpt-4o"
+    print(f"  ☕  LLM call ({model})...", end=" ", flush=True)
+
     url = config.api_url.rstrip("/")
     if not url.endswith("/chat/completions"):
         url += "/chat/completions"
@@ -91,6 +94,8 @@ def chat(
         raise LLMError(f"Invalid JSON response: {e}") from e
 
     try:
-        return result["choices"][0]["message"]["content"]
+        content = result["choices"][0]["message"]["content"]
+        print("OK", flush=True)
+        return content
     except (KeyError, IndexError) as e:
         raise LLMError(f"Unexpected response format: {e}") from e

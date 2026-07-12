@@ -30,4 +30,5 @@ class BaseAgent:
         Raises:
             LLMError: If LLM is not configured or the call fails.
         """
-        return chat(self.llm, system_prompt, user_prompt, temperature)
+        result = chat(self.llm, system_prompt, user_prompt, temperature)
+        return result
