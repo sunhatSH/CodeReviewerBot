@@ -69,14 +69,19 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
         if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
             continue
         build_dir = os.path.join(cmake_dir, "build")
+        print(f"  ⚙  Building C++ analyzer from {cmake_dir}...")
         try:
             os.makedirs(build_dir, exist_ok=True)
+            print("  ⚙  cmake configure...", end=" ", flush=True)
             cfg_result = subprocess.run(
                 ["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"],
                 cwd=build_dir, capture_output=True, text=True, timeout=60,
             )
             if cfg_result.returncode != 0:
+                print("FAIL")
                 continue
+            print("OK")
+            print("  ⚙  cmake build...", end=" ", flush=True)
             bld_result = subprocess.run(
                 ["cmake", "--build", ".", "-j4"],
                 cwd=build_dir, capture_output=True, text=True, timeout=120,
@@ -84,8 +89,11 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
             if bld_result.returncode == 0:
                 binary = os.path.join(build_dir, "static_analyzer")
                 if os.path.isfile(binary) and os.access(binary, os.X_OK):
+                    print("OK")
                     return binary
+            print("FAIL")
         except (subprocess.TimeoutExpired, OSError):
+            print("FAIL")
             continue
 
     return None
@@ -98,8 +106,11 @@ def _run_cpp_analyzer(binary: str, files: list[str]) -> list[Finding]:
     """
     findings: list[Finding] = []
     batch_size = 100
+    n_batches = (len(files) + batch_size - 1) // batch_size
     for i in range(0, len(files), batch_size):
         batch = files[i:i + batch_size]
+        batch_num = i // batch_size + 1
+        print(f"  ⚙  C++ analysis [{batch_num}/{n_batches}] {len(batch)} files...", flush=True)
         try:
             result = subprocess.run(
                 [binary] + batch,
@@ -194,11 +205,13 @@ def analyze_files(
     cpp_binary = _find_cpp_analyzer(py_config)
     cpp_used = False
     if cpp_binary:
+        print(f"  ⚙  Running C++ analyzer on {len(all_files)} file(s)...", flush=True)
         cpp_findings = _run_cpp_analyzer(cpp_binary, all_files)
         if cpp_findings:
             for f in cpp_findings:
                 report.add_finding(f)
             cpp_used = True
+        print(f"  ✔  C++ analyzer done: {len(cpp_findings)} finding(s)", flush=True)
 
     # 1-9. Per-file static analysis (skip when C++ analyzer is active)
     if not cpp_used:
