@@ -2,9 +2,9 @@ name: CI
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [main]
   push:
-    branches: [main, master]
+    branches: [main]
     tags: ["v*"]
 
 jobs:
@@ -24,7 +24,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -e .
+          pip install --upgrade setuptools wheel
+          pip install .
           pip install pytest
 
       - name: Run tests
@@ -39,12 +40,11 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install linters
-        run: pip install flake8
+      - name: Install dependencies
+        run: pip install ruff
 
-      - name: Lint with flake8
-        run: |
-          flake8 src/ --count --max-complexity=15 --statistics
+      - name: Lint with ruff
+        run: ruff check src/
 
   build:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -61,14 +61,39 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: pip install pyinstaller
+        run: |
+          pip install pyinstaller
 
       - name: Build binary
         run: |
-          pyinstaller --onefile --name crb src/crb/__main__.py
+          python build_binary.py
 
-      - name: Upload artifact
+      - name: Verify binary
+        run: |
+          dist/crb --help
+
+      - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
           name: crb-${{ runner.os }}
           path: dist/crb*
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for dir in crb-*/; do
+            arch="${dir%/}"
+            gh release upload "${GITHUB_REF_NAME}" "$dir/crb"#"$arch"
+          done

@@ -167,7 +167,7 @@ def review(paths, lang, sort, output, report_dir, output_lang):
                 click.echo(f"  ({detection.lang_counts[Lang.UNKNOWN]} unsupported files skipped)", err=True)
             sys.exit(1)
 
-    click.echo(f"Detected: {', '.join(detection.label(l) for l in target_langs)}")
+    click.echo(f"Detected: {', '.join(detection.label(lang) for lang in target_langs)}")
 
     # Derive project name from first resolved path
     first = resolved[0]
@@ -213,12 +213,11 @@ def review(paths, lang, sort, output, report_dir, output_lang):
 @cli.command(name="list-langs")
 def list_langs():
     """List supported programming languages."""
-    from crb.analyzers.detector import Lang
     click.echo("Supported languages:")
-    click.echo(f"  python  - Python (.py)")
-    click.echo(f"  c_cpp   - C/C++ (.c, .h, .cpp, .hpp, .cc, .cxx)")
-    click.echo(f"  go      - Go (.go)")
-    click.echo(f"  rust    - Rust (.rs)")
+    click.echo("  python  - Python (.py)")
+    click.echo("  c_cpp   - C/C++ (.c, .h, .cpp, .hpp, .cc, .cxx)")
+    click.echo("  go      - Go (.go)")
+    click.echo("  rust    - Rust (.rs)")
 
 
 @cli.command(name="list-sort-presets")
@@ -233,7 +232,6 @@ def list_sort_presets():
 @cli.command()
 def doctor():
     """Diagnose LLM configuration."""
-    from crb.llm.client import LLMError, chat
 
     config = LLMConfig.from_env()
 

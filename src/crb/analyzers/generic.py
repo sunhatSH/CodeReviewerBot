@@ -6,7 +6,6 @@ Scales: 1 base + 1 per keyword match (if, for, while, else if, case, catch, &&, 
 
 from __future__ import annotations
 
-import os
 import re
 from pathlib import Path
 from typing import Optional
@@ -74,7 +73,6 @@ def _estimate_function_lines(
     Returns list of (lineno, name, line_count).
     """
     functions: list[tuple[int, str, int]] = []
-    comment_re = _COMMENT_PATTERNS.get(lang_key, re.compile(r"//"))
 
     func_patterns = {
         "c_family": re.compile(
