@@ -32,7 +32,7 @@ _CATEGORY_MAP = {
 
 
 def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
-    """Find the C++ static analyzer binary."""
+    """Find or auto-build the C++ static analyzer binary."""
     if cfg.cpp_analyzer_path:
         path = cfg.cpp_analyzer_path
         if os.path.isfile(path) and os.access(path, os.X_OK):
@@ -40,15 +40,42 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
         return None
 
     # Auto-discover relative to this source file or cwd
-    candidates = [
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "c_src", "build", "static_analyzer"),
-        os.path.join(os.getcwd(), "c_src", "build", "static_analyzer"),
-        "static_analyzer",  # in PATH
+    search_roots = [
+        os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."),
+        os.getcwd(),
     ]
-    for c in candidates:
-        c = os.path.abspath(c)
-        if os.path.isfile(c) and os.access(c, os.X_OK):
-            return c
+    for root in search_roots:
+        root = os.path.abspath(root)
+        binary = os.path.join(root, "c_src", "build", "static_analyzer")
+        if os.path.isfile(binary) and os.access(binary, os.X_OK):
+            return binary
+
+    # Not found — try to auto-build if CMakeLists.txt exists
+    for root in search_roots:
+        root = os.path.abspath(root)
+        cmake_dir = os.path.join(root, "c_src")
+        if not os.path.isfile(os.path.join(cmake_dir, "CMakeLists.txt")):
+            continue
+        build_dir = os.path.join(cmake_dir, "build")
+        try:
+            os.makedirs(build_dir, exist_ok=True)
+            cfg_result = subprocess.run(
+                ["cmake", "..", "-DCMAKE_BUILD_TYPE=Release"],
+                cwd=build_dir, capture_output=True, text=True, timeout=60,
+            )
+            if cfg_result.returncode != 0:
+                continue
+            bld_result = subprocess.run(
+                ["cmake", "--build", ".", "-j4"],
+                cwd=build_dir, capture_output=True, text=True, timeout=120,
+            )
+            if bld_result.returncode == 0:
+                binary = os.path.join(build_dir, "static_analyzer")
+                if os.path.isfile(binary) and os.access(binary, os.X_OK):
+                    return binary
+        except (subprocess.TimeoutExpired, OSError):
+            continue
+
     return None
 
 
