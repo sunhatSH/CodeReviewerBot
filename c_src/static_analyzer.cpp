@@ -101,6 +101,8 @@ struct FunctionInfo {
     int isinstance_count = 0;
     bool has_global = false;
     bool has_nested_func = false;
+    bool has_missing_annotations = false;
+    int missing_annotation_count = 0;
 };
 
 static int count_params(const std::string &line) {
@@ -128,6 +130,47 @@ static int count_params(const std::string &line) {
         if (token == "self" || token == "cls") --count;
     }
     return std::max(0, count);
+}
+
+// Count params that lack type annotations in a function signature
+// Returns number of unannotated params (excluding self/cls, *args, **kwargs)
+static int count_missing_annotations(const std::string &line) {
+    auto lp = line.find('(');
+    if (lp == std::string::npos) return 0;
+    auto rp = line.rfind(')');
+    if (rp == std::string::npos || rp <= lp) return 0;
+    std::string params_str = line.substr(lp + 1, rp - lp - 1);
+    if (params_str.empty()) return 0;
+
+    // Split by comma, respecting nested brackets
+    std::vector<std::string> params;
+    int depth = 0;
+    std::string current;
+    for (char c : params_str) {
+        if ((c == '(' || c == '[' || c == '{')) ++depth;
+        else if ((c == ')' || c == ']' || c == '}')) --depth;
+        else if (c == ',' && depth == 0) {
+            params.push_back(current);
+            current.clear();
+            continue;
+        }
+        current += c;
+    }
+    if (!current.empty()) params.push_back(current);
+
+    int missing = 0;
+    for (auto &p : params) {
+        p = trim_left(p);
+        // Skip self, cls, *args, **kwargs, and bare *
+        if (p == "self" || p == "cls") continue;
+        if (p.find('*') != std::string::npos) continue;
+        if (p.find('/') != std::string::npos) continue; // positional-only marker
+        // Has annotation if it contains ':'
+        if (p.find(':') == std::string::npos) {
+            ++missing;
+        }
+    }
+    return missing;
 }
 
 // Detect if this line contains `except ...: pass` pattern
@@ -296,6 +339,8 @@ static std::vector<json> analyze_file(const std::string &filepath) {
                 [](unsigned char c) { return !std::isspace(c); }).base(), current.name.end());
 
             current.param_count = count_params(trimmed);
+            current.missing_annotation_count = count_missing_annotations(trimmed);
+            current.has_missing_annotations = (current.missing_annotation_count > 0);
             current.line_count = 1;
             continue;
         }
@@ -520,6 +565,21 @@ static std::vector<json> analyze_file(const std::string &filepath) {
             f["title"] = "使用了 global 语句";
             std::ostringstream msg;
             msg << "函数 " << func.name << " 使用了 global 语句。";
+            f["message"] = msg.str();
+            findings.push_back(std::move(f));
+        }
+
+        // Missing type annotations in function signature
+        if (func.has_missing_annotations) {
+            json f;
+            f["file"] = filepath;
+            f["line"] = func.start_line;
+            f["severity"] = "MAJOR";
+            f["category"] = "style";
+            f["title"] = "函数参数缺少类型注解";
+            std::ostringstream msg;
+            msg << "函数 " << func.name << " 有 " << func.missing_annotation_count
+                << " 个参数缺少类型注解，建议为所有参数添加类型注解以提高可维护性。";
             f["message"] = msg.str();
             findings.push_back(std::move(f));
         }

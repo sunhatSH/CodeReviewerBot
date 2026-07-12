@@ -70,17 +70,28 @@ _STRUCTURE_VIEWER_TEMPLATE = r"""<!DOCTYPE html>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f6fa;color:#2c3e50;padding:24px}
-.header{max-width:1200px;margin:0 auto 24px;display:flex;align-items:center;gap:16px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f5f6fa;color:#2c3e50;padding:0}
+.header{padding:24px 24px 0;max-width:1200px;margin:0 auto}
 .header h1{font-size:24px;font-weight:600;color:#1a1a2e}
-.header .meta{color:#7f8c8d;font-size:14px}
-.grid{max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px}
+.header .meta{color:#7f8c8d;font-size:14px;margin-top:4px}
+.tabs{display:flex;gap:0;border-bottom:2px solid #e8ecf1;margin:20px 24px 0;max-width:1200px;margin-left:auto;margin-right:auto}
+.tab{padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#7f8c8d;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;user-select:none}
+.tab:hover{color:#2c3e50}
+.tab.active{color:#3498db;border-bottom-color:#3498db}
+.content{max-width:1200px;margin:0 auto;padding:24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px}
 .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8ecf1;cursor:pointer;transition:all .2s}
 .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}
 .card h3{font-size:15px;font-weight:600;margin-bottom:8px;color:#1a1a2e}
 .card .count{font-size:28px;font-weight:700;color:#3498db}
 .card .sub{font-size:12px;color:#95a5a6;margin-top:4px}
-.file-list{max-width:1200px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8ecf1;overflow:hidden}
+.stats-row{display:flex;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.stat-box{background:#fff;border-radius:10px;padding:16px 24px;border:1px solid #e8ecf1;flex:1;min-width:120px}
+.stat-box .num{font-size:22px;font-weight:700;color:#1a1a2e}
+.stat-box .label{font-size:12px;color:#95a5a6;margin-top:2px}
+.stat-box.accent{border-left:3px solid #3498db}
+.stat-box.warn{border-left:3px solid #e67e22}
+.file-list{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8ecf1;overflow:hidden}
 .file-header{padding:16px 20px;border-bottom:1px solid #e8ecf1;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}
 .file-header .toggle{color:#3498db;font-size:13px;cursor:pointer;user-select:none}
 .file-row{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid #f0f2f5;font-size:13px;transition:background .15s}
@@ -89,39 +100,76 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .file-row .name{flex:1;font-family:'SF Mono',Menlo,monospace;color:#2c3e50}
 .file-row .path{flex:2;color:#7f8c8d;font-size:12px}
 .file-row .module{background:#eaf2fd;color:#2980b9;padding:2px 8px;border-radius:4px;font-size:11px}
-.symbols{padding:4px 0 0 32px;font-size:12px;color:#7f8c8d;line-height:1.8}
-.symbols .class{color:#27ae60}
-.symbols .fn{color:#8e44ad}
-.tree-view{padding:12px 20px 16px;font-family:'SF Mono',Menlo,monospace;font-size:13px;line-height:1.7;background:#fafbfc;border-top:1px solid #e8ecf1;max-height:400px;overflow-y:auto}
+.tree-view{padding:16px 20px;font-family:'SF Mono',Menlo,monospace;font-size:13px;line-height:1.7;background:#fafbfc;border-radius:12px;border:1px solid #e8ecf1;max-height:500px;overflow-y:auto}
 .tree-line{white-space:pre}
 .tree-dir{color:#2c3e50;font-weight:500}
 .tree-file{color:#555}
-.module-section{margin-bottom:8px}
-.module-card{padding:12px 16px;margin-bottom:8px;background:#f8f9fb;border-radius:8px;border-left:3px solid #3498db}
-.module-card h4{font-size:14px;margin-bottom:4px}
+.module-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px}
+.module-card{padding:14px 16px;background:#f8f9fb;border-radius:8px;border-left:3px solid #3498db;cursor:pointer}
+.module-card h4{font-size:14px;margin-bottom:4px;color:#2c3e50}
 .module-card .file-count{font-size:12px;color:#95a5a6}
-.module-card .files{display:none;margin-top:8px;padding-left:16px}
-.module-card.expanded .files{display:block}
-.clickable-path{cursor:pointer;color:#3498db;text-decoration:none}
-.clickable-path:hover{text-decoration:underline}
-@media(prefers-color-scheme:dark){body{background:#0f0f1a;color:#e0e0e0}.card,.file-list,.tree-view{background:#1a1a2e;border-color:#2a2a3e}.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.3)}.file-row:hover{background:#22223a}.file-header{border-color:#2a2a3e}.file-row{border-color:#22223a}.module-card{background:#22223a}}
+.module-card .files{margin-top:8px;padding-left:12px;border-left:2px solid #e8ecf1}
+.module-card .files div{font-size:12px;padding:2px 0;font-family:'SF Mono',Menlo,monospace;color:#555}
+.symbols{padding:4px 0 0 32px;font-size:12px;color:#7f8c8d;line-height:1.8}
+.symbols .class{color:#27ae60}
+.symbols .fn{color:#8e44ad}
+.empty-state{text-align:center;padding:60px 20px;color:#95a5a6;font-size:15px}
+@media(prefers-color-scheme:dark){body{background:#0f0f1a;color:#e0e0e0}.card,.file-list,.tree-view,.stat-box,.module-card{background:#1a1a2e;border-color:#2a2a3e}.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.3)}.file-row:hover{background:#22223a}.file-header{border-color:#2a2a3e}.file-row{border-color:#22223a}.module-card{background:#22223a}.tabs{border-bottom-color:#2a2a3e}.tab{color:#7f8c8d}.tab.active{color:#5dade2}}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
 const DATA = __STRUCTURE_DATA__;
+const {useState} = React;
 
-function ModuleCard({mod}) {
-  const [expanded, setExpanded] = React.useState(false);
-  return React.createElement('div',{
-    className:'module-card'+(expanded?' expanded':''),
-    onClick:()=>setExpanded(!expanded)
-  },React.createElement('h4',null,mod.label),
-    React.createElement('div',{className:'file-count'},mod.file_count+' files'),
-    React.createElement('div',{className:'files'},
-      mod.files.map(f=>React.createElement('div',{key:f,style:{fontSize:'12px',padding:'2px 0',fontFamily:"'SF Mono',Menlo,monospace"}},f))
+const TABS = [
+  {key:'overview', label:'概览'},
+  {key:'tree', label:'文件树'},
+  {key:'files', label:'文件列表'},
+  {key:'modules', label:'模块详情'},
+  {key:'deps', label:'依赖关系'},
+];
+
+function StatBox({num,label,accent,warn}) {
+  return React.createElement('div',{className:'stat-box'+(accent?' accent':'')+(warn?' warn':'')},
+    React.createElement('div',{className:'num'},num),
+    React.createElement('div',{className:'label'},label)
+  );
+}
+
+function OverviewTab({modules,files,imports}) {
+  const totalFiles = files.length;
+  const totalImports = imports.length;
+  const totalModules = modules.length;
+  const totalSymbols = files.reduce((s,f)=>s+(f.symbols?f.symbols.length:0),0);
+  return React.createElement(React.Fragment,null,
+    React.createElement('div',{className:'stats-row'},
+      React.createElement(StatBox,{num:totalFiles,label:'源文件',accent:true}),
+      React.createElement(StatBox,{num:totalModules,label:'模块'}),
+      React.createElement(StatBox,{num:totalSymbols,label:'符号（类/函数）'}),
+      React.createElement(StatBox,{num:totalImports,label:'依赖',warn:totalImports>0})
+    ),
+    React.createElement('div',{className:'grid'},
+      modules.map(mod=>React.createElement('div',{key:mod.name,className:'card'},
+        React.createElement('h3',null,mod.label),
+        React.createElement('div',{className:'count'},mod.file_count),
+        React.createElement('div',{className:'sub'},'files')
+      ))
     )
+  );
+}
+
+function TreeTab({modules}) {
+  if(!modules.length) return React.createElement('div',{className:'empty-state'},'暂无模块数据');
+  return React.createElement('div',{className:'tree-view'},
+    modules.map((mod,i)=>{
+      const prefix=i===modules.length-1?'└── ':'├── ';
+      return React.createElement('div',{key:mod.name,className:'tree-line'},
+        React.createElement('span',{className:'tree-dir'},prefix+mod.label+'/'),
+        React.createElement('span',{style:{color:'#95a5a6',fontSize:'12px'}},' ('+mod.file_count+' files)')
+      );
+    })
   );
 }
 
@@ -129,63 +177,91 @@ function FileRow({file}) {
   return React.createElement('div',{className:'file-row'},
     React.createElement('div',{className:'name'},file.name),
     React.createElement('div',{className:'path'},file.path),
-    file.module?React.createElement('div',{className:'module'},file.module):null
+    file.module?React.createElement('div',{className:'module'},file.module):null,
+    file.symbols && file.symbols.length>0 && React.createElement('div',{className:'symbols'},
+      file.symbols.slice(0,5).map((s,i)=>React.createElement('span',{key:i},s.name+' '))
+    )
+  );
+}
+
+function FilesTab({files}) {
+  const [showAll,setShowAll] = useState(false);
+  const total = files.length;
+  const visible = showAll ? files : files.slice(0,50);
+  return React.createElement('div',{className:'file-list'},
+    React.createElement('div',{className:'file-header'},
+      React.createElement('span',null,'文件 ('+total+')'),
+      React.createElement('span',{className:'toggle',onClick:()=>setShowAll(!showAll)},
+        showAll?'收起':'展开全部'
+      )
+    ),
+    visible.map(f=>React.createElement(FileRow,{key:f.path,file:f})),
+    !showAll && total>50 && React.createElement('div',{style:{textAlign:'center',padding:'16px',color:'#95a5a6',fontSize:'13px'}},
+      '显示 50/'+total+' 个文件'
+    )
+  );
+}
+
+function ModuleCard({mod,files}) {
+  const [expanded,setExpanded] = useState(false);
+  const modFiles = files.filter(f=>f.module===mod.name);
+  return React.createElement('div',{className:'module-card',onClick:()=>setExpanded(!expanded)},
+    React.createElement('h4',null,mod.label),
+    React.createElement('div',{className:'file-count'},mod.file_count+' files'),
+    expanded && React.createElement('div',{className:'files'},
+      modFiles.slice(0,20).map(f=>React.createElement('div',{key:f.path},f.name))
+    )
+  );
+}
+
+function ModulesTab({modules,files}) {
+  if(!modules.length) return React.createElement('div',{className:'empty-state'},'暂无模块数据');
+  return React.createElement('div',{className:'module-card-grid'},
+    modules.map(mod=>React.createElement(ModuleCard,{key:mod.name,mod:mod,files:files}))
+  );
+}
+
+function DepsTab({imports}) {
+  const targets = [...new Set(imports.map(i=>i.target))].sort();
+  return React.createElement('div',{className:'file-list'},
+    React.createElement('div',{className:'file-header'},
+      React.createElement('span',null,'依赖 ('+imports.length+')')
+    ),
+    targets.slice(0,60).map(target=>
+      React.createElement('div',{key:target,className:'file-row'},
+        React.createElement('div',{className:'name'},target),
+        React.createElement('div',{className:'path'},imports.filter(i=>i.target===target).length+' 处引用')
+      )
+    )
   );
 }
 
 function App() {
-  const [showAllFiles, setShowAllFiles] = React.useState(false);
-  const [showTree, setShowTree] = React.useState(false);
-  const {modules, files, imports} = DATA;
+  const [tab,setTab] = useState('overview');
+  const {modules=[], files=[], imports=[]} = DATA;
   const totalFiles = files.length;
-  const visibleFiles = showAllFiles ? files : files.slice(0,50);
+
+  const tabContent = {
+    overview: React.createElement(OverviewTab,{modules,files,imports}),
+    tree: React.createElement(TreeTab,{modules}),
+    files: React.createElement(FilesTab,{files}),
+    modules: React.createElement(ModulesTab,{modules,files}),
+    deps: React.createElement(DepsTab,{imports}),
+  };
 
   return React.createElement(React.Fragment,null,
     React.createElement('div',{className:'header'},
-      React.createElement('h1',null,'Project Structure'),
-      React.createElement('span',{className:'meta'},totalFiles+' files, '+modules.length+' modules'+(imports.length?', '+imports.length+' dependencies':''))
+      React.createElement('h1',null,'项目结构'),
+      React.createElement('div',{className:'meta'},totalFiles+' 个文件, '+modules.length+' 个模块'+(imports.length?', '+imports.length+' 个依赖':''))
     ),
-    React.createElement('div',{className:'grid'},
-      modules.map(mod=>React.createElement('div',{key:mod.name,className:'card',onClick:()=>{
-        const el = document.getElementById('files-section');
-        if(el) el.scrollIntoView({behavior:'smooth'});
-      }},
-        React.createElement('h3',null,mod.label),
-        React.createElement('div',{className:'count'},mod.file_count),
-        React.createElement('div',{className:'sub'},'files')
-      ))
+    React.createElement('div',{className:'tabs'},
+      TABS.map(t=>React.createElement('div',{
+        key:t.key,className:'tab'+(tab===t.key?' active':''),
+        onClick:()=>setTab(t.key)
+      },t.label))
     ),
-    modules.length>0 && React.createElement('div',{className:'tree-view'},
-      modules.map((mod,i)=>{
-        const prefix=i===modules.length-1?'└── ':'├── ';
-        return React.createElement('div',{key:mod.name,className:'tree-line'},
-          React.createElement('span',{className:'tree-dir'},prefix+mod.label+'/'),
-          React.createElement('span',{style:{color:'#95a5a6',fontSize:'12px'}},' ('+mod.file_count+' files)')
-        );
-      })
-    ),
-    React.createElement('div',{id:'files-section',className:'file-list'},
-      React.createElement('div',{className:'file-header'},
-        React.createElement('span',null,'Files'),
-        React.createElement('span',{className:'toggle',onClick:()=>setShowAllFiles(!showAllFiles)},
-          showAllFiles?'Show less':'Show all ('+totalFiles+')'
-        )
-      ),
-      visibleFiles.map(f=>React.createElement(FileRow,{key:f.path,file:f})),
-      !showAllFiles && totalFiles>50 && React.createElement('div',{style:{textAlign:'center',padding:'16px',color:'#95a5a6',fontSize:'13px'}},
-        'Showing 50 of '+totalFiles+' files'
-      )
-    ),
-    imports.length>0 && React.createElement('div',{className:'file-list',style:{marginTop:'16px'}},
-      React.createElement('div',{className:'file-header'},
-        React.createElement('span',null,'Dependencies ('+imports.length+')')
-      ),
-      [...new Set(imports.map(i=>i.target))].sort().slice(0,40).map(target=>
-        React.createElement('div',{key:target,className:'file-row'},
-          React.createElement('div',{className:'name'},target),
-          React.createElement('div',{className:'path'},imports.filter(i=>i.target===target).length+' references')
-        )
-      )
+    React.createElement('div',{className:'content'},
+      tabContent[tab]||React.createElement('div',{className:'empty-state'},'未知标签')
     )
   );
 }
