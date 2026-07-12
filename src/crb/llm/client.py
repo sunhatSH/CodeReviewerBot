@@ -9,7 +9,6 @@ from __future__ import annotations
 import json
 import urllib.request
 import urllib.error
-from typing import Optional
 
 from crb.config.settings import LLMConfig
 

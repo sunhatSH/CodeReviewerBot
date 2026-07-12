@@ -7,7 +7,6 @@ would be more appropriate than a custom implementation.
 from __future__ import annotations
 
 import ast
-import os
 from pathlib import Path
 from typing import Optional
 

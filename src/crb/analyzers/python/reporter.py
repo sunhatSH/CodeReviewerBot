@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Optional
 
 from crb.config.settings import AppConfig, PythonAnalyzerConfig
-from crb.report.models import Finding, OutputLang, ReviewReport, Severity, _finding_msg
+from crb.report.models import Finding, FindingCategory, OutputLang, ReviewReport, Severity, _finding_msg
 
 from . import complexity, retry_detector, style_checker, third_party_suggester
 
