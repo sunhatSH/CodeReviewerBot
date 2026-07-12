@@ -32,4 +32,4 @@ graph TD
 | `_estimate_function_lines()` | `generic.py` | Estimates function length using regex pattern matching |
 | `_count_lines_in_function()` | `generic.py` | Counts actual lines within a detected function block |
 
-> 上层结构：[分析器总图](../structure.md)
+> 上层结构：[分析器总图](../../../STRUCTURE.md)

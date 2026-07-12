@@ -241,35 +241,3 @@ def analyze_file(
 
     return findings
 
-
-def analyze_directory(
-    dir_path: str,
-    config: Optional[PythonAnalyzerConfig] = None,
-) -> ReviewReport:
-    """Recursively analyze all Python files in a directory.
-
-    Args:
-        dir_path: Path to the directory.
-        config: Analyzer configuration.
-
-    Returns:
-        A ReviewReport containing all findings.
-    """
-    if config is None:
-        config = PythonAnalyzerConfig()
-
-    report = ReviewReport(target=dir_path)
-
-    for root, _dirs, files in os.walk(dir_path):
-        # Skip archived and hidden directories
-        if "/archived" in root or "/." in root:
-            continue
-        for fname in sorted(files):
-            if not fname.endswith(".py"):
-                continue
-            fpath = os.path.join(root, fname)
-            findings = analyze_file(fpath, config)
-            for finding in findings:
-                report.add_finding(finding)
-
-    return report

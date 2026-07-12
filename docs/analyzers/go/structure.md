@@ -27,4 +27,4 @@ graph TD
 | `_estimate_function_lines()` | `generic.py` | Estimates function line count using regex patterns |
 | `_count_lines_in_function()` | `generic.py` | Counts lines within a detected function block |
 
-> 上层结构：[项目总图](../structure.md)
+> 上层结构：[项目总图](../../../STRUCTURE.md)

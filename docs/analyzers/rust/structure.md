@@ -25,4 +25,4 @@ graph TD
 |------|---------|------|
 | `analyze_files()` | `reporter.py` | Analyzes all Rust files in the given list, delegates to generic analyzer |
 
-> 上层结构：[分析器总图](../structure.md)
+> 上层结构：[分析器总图](../../../STRUCTURE.md)

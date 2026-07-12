@@ -25,4 +25,4 @@ graph TD
 |------|---------|------|
 | `analyze_files()` | `reporter.py` | Orchestrates C/C++ file analysis using generic line-based analyzer |
 
-> 上层结构：[分析器总图](../structure.md)
+> 上层结构：[分析器总图](../../../STRUCTURE.md)

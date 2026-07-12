@@ -55,4 +55,4 @@ graph TD
 | `_render_tree()` | `models.py` | Render file tree as string |
 | `to_markdown()` | `models.py` | Convert report to markdown |
 
-> 上层结构：[项目总图](../structure.md)
+> 上层结构：[项目总图](../../STRUCTURE.md)

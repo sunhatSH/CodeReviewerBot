@@ -9,7 +9,7 @@ graph TD
     CLIENT -->|calls| CHAT["chat()<br/>Main function"]
     CLIENT -->|builds| HEADERS["_build_headers()<br/>Auth headers"]
     CLIENT -->|builds| PAYLOAD["_build_payload()<br/>Request body"]
-    click LLM "../../structure.md" "Upper hierarchy"
+    click LLM "../../STRUCTURE.md" "Upper hierarchy"
     click CLIENT "../../src/crb/llm/client.py" "Source file"
     click ERROR "../../src/crb/llm/client.py" "Exception class"
     click CHAT "../../src/crb/llm/client.py" "Main chat function"
@@ -33,4 +33,4 @@ graph TD
 | `_build_headers()` | `client.py` | Builds authentication headers with API key |
 | `_build_payload()` | `client.py` | Constructs request payload with model and messages |
 
-> 上层结构：[项目总图](../structure.md)
+> 上层结构：[项目总图](../../STRUCTURE.md)

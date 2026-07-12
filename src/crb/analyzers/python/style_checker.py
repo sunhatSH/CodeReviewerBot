@@ -136,20 +136,3 @@ def analyze_file(
 
     return visitor.findings
 
-
-def analyze_directory(
-    dir_path: str,
-    config: Optional[PythonAnalyzerConfig] = None,
-    lang: OutputLang = OutputLang.EN,
-) -> list[Finding]:
-    """Recursively run style checks on Python files."""
-    all_findings: list[Finding] = []
-    for root, _dirs, files in os.walk(dir_path):
-        if "/archived" in root or "/." in root:
-            continue
-        for fname in sorted(files):
-            if not fname.endswith(".py"):
-                continue
-            fpath = os.path.join(root, fname)
-            all_findings.extend(analyze_file(fpath, config, lang=lang))
-    return all_findings

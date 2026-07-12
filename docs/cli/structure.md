@@ -38,4 +38,4 @@ graph TD
 
 ---
 
-> 上层结构：[项目总图](../structure.md)
+> 上层结构：[项目总图](../../STRUCTURE.md)

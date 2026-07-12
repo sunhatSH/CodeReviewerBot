@@ -39,4 +39,4 @@ graph TD
 | `LLMConfig` | `settings.py` | LLM配置（从环境变量读取URL、Key、Model） |
 | `AppConfig` | `settings.py` | 顶层应用配置（包含LLM和Python分析器配置） |
 
-> 上层结构：[项目总图](../structure.md)
+> 上层结构：[项目总图](../../STRUCTURE.md)
