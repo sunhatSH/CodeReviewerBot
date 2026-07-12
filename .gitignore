@@ -34,7 +34,7 @@ structure*.md
 Thumbs.db
 
 # C++ static analyzer (build artifacts)
-c_src/build/
+src/crb/c_src/build/
 
 # Environment
 .env

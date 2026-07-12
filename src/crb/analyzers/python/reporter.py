@@ -41,8 +41,8 @@ def _find_cpp_analyzer(cfg: PythonAnalyzerConfig) -> str | None:
 
     # Auto-discover relative to this source file or cwd
     search_roots = [
-        os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."),
-        os.getcwd(),
+        os.path.join(os.path.dirname(__file__), "..", ".."),  # crb/ package
+        os.path.join(os.getcwd(), "src", "crb"),              # dev layout
     ]
     for root in search_roots:
         root = os.path.abspath(root)

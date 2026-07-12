@@ -568,7 +568,7 @@ def build_cpp_analyzer():
     """Build the C++ static analyzer for faster Python analysis."""
     import subprocess
 
-    c_src = Path(__file__).resolve().parent.parent.parent.parent / "c_src"
+    c_src = Path(__file__).resolve().parent.parent / "c_src"
     build_dir = c_src / "build"
 
     if not (c_src / "CMakeLists.txt").exists():
