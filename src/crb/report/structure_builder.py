@@ -256,7 +256,7 @@ def build_mermaid_diagram(all_files: list[str], subdir: str | None = None) -> st
             count = len(files_in_dir)
             label = f"{label} ({count})"
         safe_id = n.replace("/", "_").replace(".", "_").replace("-", "_")
-        lines.append(f"    {safe_id}[{label}]")
+        lines.append(f'    {safe_id}["{label}"]')
     lines.append("")
     for src, dst in sorted(edges):
         src_id = src.replace("/", "_").replace(".", "_").replace("-", "_")
