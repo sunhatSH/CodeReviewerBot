@@ -14,10 +14,12 @@ def main():
     src_crb = os.path.join(repo_root, "src", "crb")
 
     # Ensure project dependencies are installed so PyInstaller can bundle them
-    subprocess.check_call([
-        sys.executable, "-m", "pip", "install", ".",
-        "-q", "--no-build-isolation",
-    ])
+    pip_cmd = [sys.executable, "-m", "pip", "install", ".", "-q", "--no-build-isolation"]
+    try:
+        subprocess.check_call(pip_cmd)
+    except subprocess.CalledProcessError:
+        # Retry with --break-system-packages for externally-managed environments (macOS)
+        subprocess.check_call(pip_cmd + ["--break-system-packages"])
 
     separator = ";" if sys.platform == "win32" else ":"
     subprocess.check_call([

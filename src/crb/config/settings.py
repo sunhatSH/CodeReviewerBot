@@ -27,6 +27,7 @@ class PythonAnalyzerConfig:
         default_factory=lambda: ["complex_func"]
     )
     style_enabled: bool = True
+    orphan_enabled: bool = True
 
 
 @dataclass

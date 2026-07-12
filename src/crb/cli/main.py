@@ -209,6 +209,21 @@ def review(paths, lang, sort, output, report_dir, output_lang):
         report.all_files = all_project_files
         _write_report(report, report_dir, project_name, output)
 
+    # Cross-language security scan (hardcoded secrets in all project files)
+    if all_project_files:
+        from crb.analyzers.secret_detector import analyze_file as secret_scan
+        secret_findings: list = []
+        for fp in all_project_files:
+            secret_findings.extend(secret_scan(fp, lang=OutputLang(output_lang)))
+        if secret_findings:
+            click.echo(f"Security: found {len(secret_findings)} potential secret(s)")
+            sec_report = ReviewReport(target="security_scan", lang=OutputLang(output_lang))
+            sec_report.set_sort_order(sort_order)
+            for f in secret_findings:
+                sec_report.add_finding(f)
+            sec_report.all_files = all_project_files
+            _write_report(sec_report, report_dir, f"{project_name}_security", output)
+
 
 @cli.command(name="list-langs")
 def list_langs():

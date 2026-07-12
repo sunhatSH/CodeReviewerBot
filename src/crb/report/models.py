@@ -273,6 +273,282 @@ _MSG_TEMPLATES: dict[str, dict[str, tuple[str, str, str]]] = {
             "Consider using `tenacity` or `backoff` for robust retry logic.",
         ),
     },
+    "hardcoded_secret": {
+        "ch": (
+            "疑似硬编码密钥",
+            "发现疑似硬编码的 {pattern}，存在安全风险。",
+            "将敏感信息移至环境变量或密钥管理服务（如 .env 文件 + .gitignore）。",
+        ),
+        "en": (
+            "Potential Hardcoded Secret",
+            "Potential hardcoded {pattern} detected — security risk.",
+            "Move sensitive data to environment variables or a secret manager (e.g. .env + .gitignore).",
+        ),
+    },
+    "bare_except": {
+        "ch": (
+            "裸 except 子句",
+            "使用了裸 `except:`，会捕获 KeyboardInterrupt 等系统异常。",
+            "指定具体的异常类型，或使用 `except Exception:`。",
+        ),
+        "en": (
+            "Bare Except Clause",
+            "Bare `except:` catches system exceptions like KeyboardInterrupt.",
+            "Specify an exception type, or use `except Exception:`.",
+        ),
+    },
+    "mutable_default_arg": {
+        "ch": (
+            "可变默认参数",
+            "函数 `{name}` 的默认参数是可变对象，所有调用共享同一实例。",
+            "使用 `None` 作为默认值，并在函数体内创建新实例。",
+        ),
+        "en": (
+            "Mutable Default Argument",
+            "Function `{name}` has a mutable default argument shared across all calls.",
+            "Use `None` as default and create a new instance inside the function body.",
+        ),
+    },
+    "is_comparison": {
+        "ch": (
+            "应使用 `is` 而非 `{op}`",
+            "使用 `{op}` 而不是 `is` 来比较 `{name}`。",
+            "使用 `is {name}` 或 `is not {name}` 替代 `{op} {name}`。",
+        ),
+        "en": (
+            "Use `is` Instead of `{op}`",
+            "Comparing with `{name}` using `{op}` instead of `is`.",
+            "Use `is {name}` or `is not {name}` instead of `{op} {name}`.",
+        ),
+    },
+    "missing_else_branch": {
+        "ch": (
+            "缺少 else 分支",
+            "包含 {count} 个条件的 if-elif 链缺少默认的 else 分支。",
+            "添加 else 分支处理所有未覆盖的情况，或显式注释说明为何不需要。",
+        ),
+        "en": (
+            "Missing else Branch",
+            "If-elif chain with {count} conditions has no final else branch.",
+            "Add an else branch to handle unanticipated cases, or add a comment explaining why it is unnecessary.",
+        ),
+    },
+    "range_len": {
+        "ch": (
+            "建议使用 enumerate",
+            "使用 `range(len(...))` 迭代索引，应改用 `enumerate`。",
+            "使用 `for i, item in enumerate(seq):` 替代 `for i in range(len(seq)):`。",
+        ),
+        "en": (
+            "Prefer enumerate",
+            "Using `range(len(...))` to iterate by index should use `enumerate` instead.",
+            "Use `for i, item in enumerate(seq):` instead of `for i in range(len(seq)):`.",
+        ),
+    },
+    "division_by_zero": {
+        "ch": (
+            "可能的除零错误",
+            "在 `{name}` 中执行除法操作，但除数没有零值检查。",
+            "确保除数不为零，或在除法前添加零值检查。",
+        ),
+        "en": (
+            "Potential Division by Zero",
+            "Division operation in `{name}` without a preceding zero check on the divisor.",
+            "Ensure the divisor is non-zero or add a guard check before division.",
+        ),
+    },
+    "redundant_docstring": {
+        "ch": (
+            "冗余的文档字符串",
+            "函数/类 `{name}` 的文档字符串仅重复了名称。",
+            "提供有意义的文档说明其用途、参数和返回值。",
+        ),
+        "en": (
+            "Redundant Docstring",
+            "Docstring for `{name}` merely repeats its name.",
+            "Provide a meaningful docstring describing purpose, parameters, and return value.",
+        ),
+    },
+    "empty_docstring": {
+        "ch": (
+            "空的文档字符串",
+            "函数/类 `{name}` 有空的文档字符串。",
+            "移除空文档字符串或添加有意义的描述。",
+        ),
+        "en": (
+            "Empty Docstring",
+            "Function/class `{name}` has an empty docstring.",
+            "Remove the empty docstring or add a meaningful description.",
+        ),
+    },
+    "stub_comment": {
+        "ch": (
+            "缺少详细信息的 {tag} 注释",
+            "发现 `{tag}` 注释，但缺少详细描述。",
+            "在 `{tag}` 后添加具体的描述，包括负责人和预期修复日期。",
+        ),
+        "en": (
+            "Stub {tag} Comment",
+            "`{tag}` comment found without detailed description.",
+            "Add a specific description after `{tag}`, including owner and expected fix date.",
+        ),
+    },
+    "too_many_params": {
+        "ch": (
+            "参数过多",
+            "函数 `{name}` 有 {count} 个参数，超过阈值 {threshold}。",
+            "考虑将相关参数封装为数据类或配置对象。",
+        ),
+        "en": (
+            "Too Many Parameters",
+            "Function `{name}` has {count} parameters, exceeding threshold {threshold}.",
+            "Consider grouping related parameters into a data class or config object.",
+        ),
+    },
+    "excessive_nesting": {
+        "ch": (
+            "嵌套过深",
+            "函数 `{name}` 的控制流嵌套深度为 {depth}，超过阈值 {threshold}。",
+            "提取内层逻辑为独立函数以降低嵌套深度。",
+        ),
+        "en": (
+            "Excessive Nesting",
+            "Function `{name}` has control flow nesting depth {depth}, exceeding threshold {threshold}.",
+            "Extract inner logic into separate functions to reduce nesting depth.",
+        ),
+    },
+    "stale_todo": {
+        "ch": (
+            "过期的 TODO 注释",
+            "TODO/FIXME 注释中的日期 {date} 已距今超过 6 个月。",
+            "检查该任务是否已处理，如已完成则移除注释，否则更新日期。",
+        ),
+        "en": (
+            "Stale TODO Comment",
+            "TODO/FIXME comment dated {date} is over 6 months old.",
+            "Check if the task has been addressed: remove if done, or update the date.",
+        ),
+    },
+    "commented_out_code": {
+        "ch": (
+            "被注释的代码块",
+            "发现 {lines} 行被注释的代码（起始行 {start}），可能是废弃代码。",
+            "如不再需要则删除注释代码；如需要则取消注释。",
+        ),
+        "en": (
+            "Commented-Out Code Block",
+            "Found {lines} lines of commented-out code (starting at line {start}), likely dead code.",
+            "Delete if no longer needed, or uncomment if still relevant.",
+        ),
+    },
+    "excessive_isinstance": {
+        "ch": (
+            "过多的 isinstance 检查",
+            "函数 `{name}` 包含 {count} 次 `isinstance` 类型检查，可能缺少多态设计。",
+            "考虑使用多态（子类重写方法）替代 isinstance 检查。",
+        ),
+        "en": (
+            "Excessive isinstance Checks",
+            "Function `{name}` has {count} isinstance type checks, suggesting missing polymorphism.",
+            "Consider using polymorphism (subclass method overrides) instead of isinstance checks.",
+        ),
+    },
+    "silent_except": {
+        "ch": (
+            "静默的异常捕获",
+            "使用 `except {name}: pass` 静默忽略了异常。",
+            "至少记录异常日志，或处理具体的异常类型。",
+        ),
+        "en": (
+            "Silent Exception Handling",
+            "Using `except {name}: pass` silently ignores exceptions.",
+            "At minimum log the exception, or handle specific exception types.",
+        ),
+    },
+    "surface_patching": {
+        "ch": (
+            "表面修补",
+            "在 `{name}` 中使用了 `except {name}: print(...)` 模式——仅打印而非修复。",
+            "实现真正的错误处理（重试、回退、或向上传递），而非仅打印。",
+        ),
+        "en": (
+            "Surface-Level Patching",
+            "Pattern `except {name}: print(...)` — logs but does not fix.",
+            "Implement real error handling (retry, fallback, or propagate) instead of just printing.",
+        ),
+    },
+    "shadows_stdlib": {
+        "ch": (
+            "模块名覆盖标准库",
+            "模块 `{module}` 的名称与 Python 标准库模块冲突。",
+            "为重命名的模块换个名称，以避免导入歧义。",
+        ),
+        "en": (
+            "Module Shadows Stdlib",
+            "Module `{module}` shadows a Python standard library module.",
+            "Rename the module to avoid import ambiguity.",
+        ),
+    },
+    "multi_path_import": {
+        "ch": (
+            "多路径导入",
+            "模块 `{module}` 从多个不同路径导入，可能导致依赖冲突。",
+            "检查是否存在同名模块在不同目录中，确保导入路径唯一。",
+        ),
+        "en": (
+            "Multi-Path Import",
+            "Module `{module}` is imported from multiple different paths, which may cause dependency conflicts.",
+            "Check for duplicate module names across directories and ensure unique import paths.",
+        ),
+    },
+    "test_no_assert": {
+        "ch": (
+            "测试无断言",
+            "测试函数 `{name}` 没有包含任何断言语句。",
+            "添加断言验证预期行为，否则该测试无效。",
+        ),
+        "en": (
+            "Test Has No Assertions",
+            "Test function `{name}` contains no assertions.",
+            "Add assertions to validate expected behavior, otherwise the test is ineffective.",
+        ),
+    },
+    "test_excessive_mock": {
+        "ch": (
+            "过度 Mock",
+            "测试 `{name}` 使用了 {mocks} 个 mock，但只有 {asserts} 个断言。",
+            "减少 mock 数量，优先使用真实对象进行集成测试。",
+        ),
+        "en": (
+            "Excessive Mocking",
+            "Test `{name}` uses {mocks} mocks but only has {asserts} assertions.",
+            "Reduce mocking; prefer real objects for integration testing.",
+        ),
+    },
+    "test_always_true": {
+        "ch": (
+            "总是通过的断言",
+            "测试 `{name}` 包含总是通过的断言（如 `assert True`）。",
+            "使用有意义的断言验证实际行为。",
+        ),
+        "en": (
+            "Always-True Assertion",
+            "Test `{name}` contains an assertion that always passes (e.g. `assert True`).",
+            "Use meaningful assertions to verify actual behavior.",
+        ),
+    },
+    "orphan_code": {
+        "ch": (
+            "疑似孤儿代码",
+            "{kind} `{name}` 在文件 `{file}` 中定义，但未被项目中任何其他代码引用。",
+            "检查该 {kind} 是否仍被需要：如已废弃，删除或移入 archived/ 目录；如通过动态方式调用，考虑添加显式引用或 suppression 机制。",
+        ),
+        "en": (
+            "Potentially Orphaned Code",
+            "{kind} `{name}` is defined in `{file}` but not referenced by any other code in the project.",
+            "Check if this {kind} is still needed: delete if obsolete, or add an explicit reference if dynamically invoked.",
+        ),
+    },
 }
 
 

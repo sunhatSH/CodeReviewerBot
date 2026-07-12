@@ -9,7 +9,7 @@ from typing import Optional
 from crb.config.settings import AppConfig, PythonAnalyzerConfig
 from crb.report.models import Finding, FindingCategory, OutputLang, ReviewReport, Severity, _finding_msg
 
-from . import complexity, retry_detector, style_checker, third_party_suggester
+from . import bloat_detector, bug_detector, comment_detector, complexity, dead_code_detector, dependency_detector, design_detector, edge_case_detector, orphan_detector, retry_detector, style_checker, test_theater_detector, third_party_suggester
 
 
 def analyze_files(
@@ -76,20 +76,66 @@ def analyze_files(
         for finding in complexity.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
             report.add_finding(finding)
 
-    # 2. Retry detection
+    # 2. Code bloat detection (AI growth patterns)
+    for fpath in all_files:
+        for finding in bloat_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 3. Bug detection
+    for fpath in all_files:
+        for finding in bug_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 4. Edge case detection
+    for fpath in all_files:
+        for finding in edge_case_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 5. Design/extensibility review
+    for fpath in all_files:
+        for finding in design_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 6. Dead code / stale documentation detection
+    for fpath in all_files:
+        for finding in dead_code_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 7. Documentation/comment redundancy detection
+    for fpath in all_files:
+        for finding in comment_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 8. Retry detection
     for fpath in all_files:
         for finding in retry_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
             report.add_finding(finding)
 
-    # 3. Code style (always last in report for findings)
+    # 9. Code style (always last in report for findings)
     if py_config.style_enabled:
         for fpath in all_files:
             for finding in style_checker.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
                 report.add_finding(finding)
 
-    # 4. Third-party library suggestions (lightweight hints)
+    # 10. Third-party library suggestions (lightweight hints)
     for fpath in all_files:
         for finding in third_party_suggester.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
             report.add_finding(finding)
+
+    # 11. Orphan code detection (cross-file analysis)
+    if py_config.orphan_enabled:
+        for finding in orphan_detector.analyze_files(all_files, lang=OutputLang(output_lang)):
+            report.add_finding(finding)
+
+    # 12. Dependency conflict detection (cross-file analysis)
+    for finding in dependency_detector.analyze_files(all_files, lang=OutputLang(output_lang)):
+        report.add_finding(finding)
+
+    # 13. Test theater detection (test files only)
+    test_files = [f for f in all_files if "test_" in Path(f).stem or "/test_" in f]
+    if test_files:
+        for fpath in test_files:
+            for finding in test_theater_detector.analyze_file(fpath, py_config, lang=OutputLang(output_lang)):
+                report.add_finding(finding)
 
     return report
