@@ -74,11 +74,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .header{padding:24px 24px 0;max-width:1200px;margin:0 auto}
 .header h1{font-size:24px;font-weight:600;color:#1a1a2e}
 .header .meta{color:#7f8c8d;font-size:14px;margin-top:4px}
-.tabs{display:flex;gap:0;border-bottom:2px solid #e8ecf1;margin:20px 24px 0;max-width:1200px;margin-left:auto;margin-right:auto}
-.tab{padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#7f8c8d;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;user-select:none}
+.tabs{display:flex;border-bottom:2px solid #e8ecf1;margin:20px 24px 0;max-width:1200px;margin-left:auto;margin-right:auto;overflow-x:auto}
+.tab{padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:#7f8c8d;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;user-select:none;white-space:nowrap}
 .tab:hover{color:#2c3e50}
 .tab.active{color:#3498db;border-bottom-color:#3498db}
+
 .content{max-width:1200px;margin:0 auto;padding:24px}
+.search-bar{width:100%;max-width:1200px;margin:0 auto;padding:0 24px 16px}
+.search-bar input{width:100%;padding:10px 16px;border:1px solid #e0e0e0;border-radius:8px;font-size:14px;outline:none;transition:border .2s;background:#fff}
+.search-bar input:focus{border-color:#3498db;box-shadow:0 0 0 3px rgba(52,152,219,.15)}
+
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:32px}
 .card{background:#fff;border-radius:12px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8ecf1;cursor:pointer;transition:all .2s}
 .card:hover{box-shadow:0 4px 12px rgba(0,0,0,.12);transform:translateY(-2px)}
@@ -91,37 +96,92 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .stat-box .label{font-size:12px;color:#95a5a6;margin-top:2px}
 .stat-box.accent{border-left:3px solid #3498db}
 .stat-box.warn{border-left:3px solid #e67e22}
+
 .file-list{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);border:1px solid #e8ecf1;overflow:hidden}
-.file-header{padding:16px 20px;border-bottom:1px solid #e8ecf1;font-weight:600;font-size:15px;display:flex;justify-content:space-between;align-items:center}
+.file-header{padding:14px 20px;border-bottom:1px solid #e8ecf1;font-weight:600;font-size:14px;display:flex;justify-content:space-between;align-items:center}
 .file-header .toggle{color:#3498db;font-size:13px;cursor:pointer;user-select:none}
-.file-row{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid #f0f2f5;font-size:13px;transition:background .15s}
+.file-row{display:flex;align-items:center;padding:10px 20px;border-bottom:1px solid #f0f2f5;font-size:13px;transition:background .15s;cursor:pointer}
 .file-row:last-child{border-bottom:none}
-.file-row:hover{background:#f8f9fb}
-.file-row .name{flex:1;font-family:'SF Mono',Menlo,monospace;color:#2c3e50}
-.file-row .path{flex:2;color:#7f8c8d;font-size:12px}
-.file-row .module{background:#eaf2fd;color:#2980b9;padding:2px 8px;border-radius:4px;font-size:11px}
-.tree-view{padding:16px 20px;font-family:'SF Mono',Menlo,monospace;font-size:13px;line-height:1.7;background:#fafbfc;border-radius:12px;border:1px solid #e8ecf1;max-height:500px;overflow-y:auto}
-.tree-line{white-space:pre}
+.file-row:hover{background:#f0f4ff}
+.file-row.selected{background:#eaf4ff}
+.file-row .name{font-family:'SF Mono',Menlo,monospace;color:#2c3e50;font-weight:500}
+.file-row .path{color:#95a5a6;font-size:12px;margin-left:12px;flex:1}
+.file-row .module{background:#eaf2fd;color:#2980b9;padding:2px 8px;border-radius:4px;font-size:11px;white-space:nowrap}
+.file-row .sym-count{font-size:11px;color:#95a5a6;margin-left:8px;white-space:nowrap}
+.file-detail{background:#f8f9fb;padding:16px 20px;border-bottom:1px solid #e8ecf1;font-size:13px;line-height:1.8}
+.file-detail .sclass{color:#27ae60;font-weight:500}
+.file-detail .sfn{color:#8e44ad}
+
+.tree-view{background:#fafbfc;border-radius:12px;border:1px solid #e8ecf1;overflow:hidden}
+.tree-inner{padding:12px 16px;font-family:'SF Mono',Menlo,monospace;font-size:13px;line-height:1.8;max-height:600px;overflow-y:auto}
+.tree-line{white-space:pre;cursor:default}
+.tree-line.clickable{cursor:pointer}
+.tree-line.clickable:hover{background:#f0f4ff;margin:0 -16px;padding:0 16px;border-radius:4px}
+.dir-arrow{color:#95a5a6;margin-right:4px;display:inline-block;width:12px;transition:transform .2s}
+.dir-arrow.open{transform:rotate(90deg)}
 .tree-dir{color:#2c3e50;font-weight:500}
-.tree-file{color:#555}
+.tree-file{color:#555;cursor:pointer}
+.tree-file:hover{color:#3498db}
+.sym-badge{font-size:10px;color:#95a5a6;margin-left:4px}
+
 .module-card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin-top:16px}
 .module-card{padding:14px 16px;background:#f8f9fb;border-radius:8px;border-left:3px solid #3498db;cursor:pointer}
+.module-card:hover{background:#f0f4ff}
 .module-card h4{font-size:14px;margin-bottom:4px;color:#2c3e50}
 .module-card .file-count{font-size:12px;color:#95a5a6}
 .module-card .files{margin-top:8px;padding-left:12px;border-left:2px solid #e8ecf1}
-.module-card .files div{font-size:12px;padding:2px 0;font-family:'SF Mono',Menlo,monospace;color:#555}
-.symbols{padding:4px 0 0 32px;font-size:12px;color:#7f8c8d;line-height:1.8}
-.symbols .class{color:#27ae60}
-.symbols .fn{color:#8e44ad}
+.module-card .files div{font-size:12px;padding:2px 0;font-family:'SF Mono',Menlo,monospace;color:#555;cursor:pointer}
+.module-card .files div:hover{color:#3498db}
+
+.dep-node{display:flex;align-items:center;padding:8px 16px;border-bottom:1px solid #f0f2f5;font-size:13px;cursor:pointer;transition:background .15s}
+.dep-node:hover{background:#f0f4ff}
+.dep-node:last-child{border-bottom:none}
+.dep-name{font-weight:500;color:#2c3e50;min-width:160px}
+.dep-bar-wrap{flex:1;height:16px;background:#e8ecf1;border-radius:8px;overflow:hidden;margin:0 12px}
+.dep-bar{height:100%;background:#3498db;border-radius:8px;transition:width .3s}
+.dep-count{color:#95a5a6;font-size:12px;min-width:60px;text-align:right}
+.dep-files{margin-top:4px;padding:8px 16px 16px;border-bottom:1px solid #e8ecf1;display:none}
+.dep-files.open{display:block}
+.dep-file{font-size:12px;padding:3px 0;font-family:'SF Mono',Menlo,monospace;color:#555;cursor:pointer}
+.dep-file:hover{color:#3498db}
+
 .empty-state{text-align:center;padding:60px 20px;color:#95a5a6;font-size:15px}
-@media(prefers-color-scheme:dark){body{background:#0f0f1a;color:#e0e0e0}.card,.file-list,.tree-view,.stat-box,.module-card{background:#1a1a2e;border-color:#2a2a3e}.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.3)}.file-row:hover{background:#22223a}.file-header{border-color:#2a2a3e}.file-row{border-color:#22223a}.module-card{background:#22223a}.tabs{border-bottom-color:#2a2a3e}.tab{color:#7f8c8d}.tab.active{color:#5dade2}}
+.no-match{text-align:center;padding:40px 20px;color:#95a5a6;font-size:14px}
+.page-nav{display:flex;justify-content:center;align-items:center;gap:8px;padding:16px}
+.page-btn{width:32px;height:32px;border:1px solid #e0e0e0;border-radius:6px;background:#fff;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none}
+.page-btn:hover{background:#f0f4ff;border-color:#3498db}
+.page-btn.active{background:#3498db;color:#fff;border-color:#3498db}
+.page-btn:disabled{opacity:.3;cursor:default}
+.page-info{font-size:13px;color:#7f8c8d;padding:0 8px}
+
+@media(prefers-color-scheme:dark){
+body{background:#0f0f1a;color:#e0e0e0}
+.card,.file-list,.tree-view,.stat-box,.module-card,.search-bar input{background:#1a1a2e;border-color:#2a2a3e}
+.card:hover{box-shadow:0 4px 12px rgba(0,0,0,.3)}
+.file-row:hover,.file-row.selected{background:#22223a}
+.file-detail{background:#22223a}
+.tree-inner{background:#1a1a2e;border-color:#2a2a3e}
+.tree-line.clickable:hover{background:#22223a}
+.file-header{border-color:#2a2a3e}.file-row{border-color:#22223a}
+.dep-node:hover{background:#22223a}
+.dep-bar-wrap{background:#2a2a3e}
+.module-card{background:#22223a;border-color:#2a2a3e}
+.module-card:hover{background:#2a2a3e}
+.tabs{border-bottom-color:#2a2a3e}.tab{color:#7f8c8d}.tab.active{color:#5dade2}
+.search-bar input{color:#e0e0e0;background:#1a1a2e;border-color:#2a2a3e}
+.search-bar input:focus{border-color:#5dade2}
+.page-btn{background:#1a1a2e;border-color:#2a2a3e;color:#e0e0e0}
+.page-btn:hover{background:#22223a;border-color:#5dade2}
+.page-btn.active{background:#5dade2;color:#fff;border-color:#5dade2}
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script>
 const DATA = __STRUCTURE_DATA__;
-const {useState} = React;
+const {useState,useMemo,useCallback} = React;
+const PAGE_SIZE = 30;
 
 const TABS = [
   {key:'overview', label:'概览'},
@@ -160,94 +220,192 @@ function OverviewTab({modules,files,imports}) {
   );
 }
 
-function TreeTab({modules}) {
+function buildTree(modules,files){
+  const tree={}; const seen=new Set();
+  const add=(parts,i,file)=>{
+    if(i>=parts.length)return;
+    const p=parts[i]; const isLast=i===parts.length-1;
+    if(!tree[p]){tree[p]={__files:[],__dirs:{},__dirOrder:[]}}
+    if(isLast){tree[p].__files.push(file)}
+    else{add(parts,i+1,file)}
+  };
+  modules.forEach(m=>{
+    const parts=m.name.split('/');
+    tree[parts[0]]=tree[parts[0]]||{__files:[],__dirs:{},__dirOrder:[]};
+  });
+  return tree;
+}
+
+function TreeNode({node,path,level,onSelectFile}) {
+  const [open,setOpen]=useState(level<2);
+  const entries=Object.entries(node).filter(([k])=>k!=='__files');
+  const files=node.__files||[];
+  const hasChildren=entries.length>0||files.length>0;
+  const arrow=hasChildren?(open?'▾':'▸'):' ';
+  return React.createElement(React.Fragment,null,
+    React.createElement('div',{className:'tree-line'+(hasChildren?' clickable':''),onClick:()=>hasChildren&&setOpen(!open),style:{paddingLeft:level*16+'px'}},
+      React.createElement('span',{className:'dir-arrow'+(open?' open':'')},arrow),
+      React.createElement('span',{className:'tree-dir'},path.split('/').pop()||path),
+      React.createElement('span',{style:{color:'#95a5a6',fontSize:'12px',marginLeft:'6px'}},'('+ (entries.length+files.length)+')')
+    ),
+    open&&entries.map(([k,v])=>React.createElement(TreeNode,{key:k,node:v,path:k,level:level+1,onSelectFile:onSelectFile})),
+    open&&files.map(f=>React.createElement('div',{key:f,className:'tree-line',style:{paddingLeft:(level+1)*16+'px'},onClick:(e)=>{e.stopPropagation();onSelectFile&&onSelectFile(f)}},
+      React.createElement('span',{style:{display:'inline-block',width:'12px'}},' '),
+      React.createElement('span',{className:'tree-file'},f)
+    ))
+  );
+}
+
+function TreeTab({modules,files,onSelectFile}) {
+  const tree=useMemo(()=>buildTree(modules,files),[modules,files]);
+  const roots=Object.entries(tree);
   if(!modules.length) return React.createElement('div',{className:'empty-state'},'暂无模块数据');
   return React.createElement('div',{className:'tree-view'},
-    modules.map((mod,i)=>{
-      const prefix=i===modules.length-1?'└── ':'├── ';
-      return React.createElement('div',{key:mod.name,className:'tree-line'},
-        React.createElement('span',{className:'tree-dir'},prefix+mod.label+'/'),
-        React.createElement('span',{style:{color:'#95a5a6',fontSize:'12px'}},' ('+mod.file_count+' files)')
+    React.createElement('div',{className:'tree-inner'},
+      roots.map(([k,v])=>React.createElement(TreeNode,{key:k,node:v,path:k,level:0,onSelectFile:onSelectFile}))
+    )
+  );
+}
+
+function FileDetail({file,files}) {
+  if(!file) return null;
+  const detail=files.find(f=>f.name===file);
+  if(!detail) return null;
+  const syms=detail.symbols||[];
+  return React.createElement('div',{className:'file-detail'},
+    React.createElement('div',{style:{fontWeight:600,marginBottom:'8px'}},detail.path),
+    syms.length>0?React.createElement('div',null,
+      syms.map((s,i)=>React.createElement('div',{key:i},
+        React.createElement('span',{className:s.name.startsWith('class')?'sclass':'sfn'},s.name),
+        s.children&&s.children.length>0?React.createElement('span',{style:{color:'#95a5a6'}},': '+s.children.join(', ')):null
+      ))
+    ):React.createElement('span',{style:{color:'#95a5a6'}},'无符号信息')
+  );
+}
+
+function Pagination({page,totalPages,onPage}) {
+  if(totalPages<=1)return null;
+  const pages=[];
+  const start=Math.max(0,Math.min(page-2,totalPages-5));
+  const end=Math.min(start+5,totalPages);
+  for(let i=start;i<end;i++)pages.push(i);
+  return React.createElement('div',{className:'page-nav'},
+    React.createElement('button',{className:'page-btn',disabled:page===0,onClick:()=>onPage(page-1)},'‹'),
+    pages.map(p=>React.createElement('button',{key:p,className:'page-btn'+(p===page?' active':''),onClick:()=>onPage(p)},p+1)),
+    React.createElement('button',{className:'page-btn',disabled:page>=totalPages-1,onClick:()=>onPage(page+1)},'›'),
+    React.createElement('span',{className:'page-info'},(page+1)+'/'+totalPages)
+  );
+}
+
+function FilesTab({files,search,selectedFile,onSelectFile}) {
+  const [page,setPage]=useState(0);
+  const filtered=useMemo(()=>{
+    if(!search)return files;
+    const q=search.toLowerCase();
+    return files.filter(f=>f.name.toLowerCase().includes(q)||f.path.toLowerCase().includes(q));
+  },[files,search]);
+  const totalPages=Math.ceil(filtered.length/PAGE_SIZE);
+  const visible=filtered.slice(page*PAGE_SIZE,(page+1)*PAGE_SIZE);
+
+  React.useEffect(()=>{setPage(0)},[search]);
+
+  if(!filtered.length)return React.createElement('div',{className:'no-match'},search?'无匹配文件':'暂无数据');
+  return React.createElement('div',null,
+    React.createElement(FileDetail,{file:selectedFile,files:files}),
+    React.createElement('div',{className:'file-list'},
+      React.createElement('div',{className:'file-header'},
+        React.createElement('span',null,'文件 ('+filtered.length+(filtered.length<files.length?'/'+files.length:'')+')'),
+        React.createElement('span',null)
+      ),
+      visible.map(f=>{
+        const symCount=f.symbols?f.symbols.length:0;
+        return React.createElement('div',{key:f.path,className:'file-row'+(selectedFile===f.name?' selected':''),onClick:()=>onSelectFile(selectedFile===f.name?null:f.name)},
+          React.createElement('span',{className:'name'},f.name),
+          React.createElement('span',{className:'path'},f.path),
+          f.module?React.createElement('span',{className:'module'},f.module):null,
+          symCount>0?React.createElement('span',{className:'sym-count'},symCount+' sym'):null
+        );
+      })
+    ),
+    React.createElement(Pagination,{page,pageNum:page,totalPages,onPage:p=>setPage(p)})
+  );
+}
+
+function ModuleCard({mod,files,onSelectFile}) {
+  const [expanded,setExpanded]=useState(false);
+  const modFiles=files.filter(f=>f.module===mod.name);
+  return React.createElement('div',{className:'module-card',onClick:()=>setExpanded(!expanded)},
+    React.createElement('h4',null,mod.label),
+    React.createElement('div',{className:'file-count'},mod.file_count+' files'),
+    expanded&&React.createElement('div',{className:'files'},
+      modFiles.slice(0,30).map(f=>React.createElement('div',{key:f.path,onClick:(e)=>{e.stopPropagation();onSelectFile&&onSelectFile(f.name)}},f.name)),
+      modFiles.length>30?React.createElement('div',{style:{color:'#95a5a6',fontSize:'12px',padding:'4px 0'}},'... 还有 '+(modFiles.length-30)+' 个文件'):null
+    )
+  );
+}
+
+function ModulesTab({modules,files,search,onSelectFile}) {
+  const filtered=useMemo(()=>{
+    if(!search)return modules;
+    const q=search.toLowerCase();
+    return modules.filter(m=>m.name.toLowerCase().includes(q));
+  },[modules,search]);
+  if(!filtered.length)return React.createElement('div',{className:'no-match'},search?'无匹配模块':'暂无模块数据');
+  return React.createElement('div',{className:'module-card-grid'},
+    filtered.map(mod=>React.createElement(ModuleCard,{key:mod.name,mod:mod,files:files,onSelectFile:onSelectFile}))
+  );
+}
+
+function DepsTab({imports,search}) {
+  const [expanded,setExpanded]=useState(null);
+  const byTarget={};
+  imports.forEach(i=>{byTarget[i.target]=byTarget[i.target]||[];byTarget[i.target].push(i.from)});
+  let entries=Object.entries(byTarget).sort((a,b)=>b[1].length-a[1].length);
+  const maxCount=entries.length>0?entries[0][1].length:1;
+  const filtered=search?entries.filter(([name])=>name.toLowerCase().includes(search.toLowerCase())):entries;
+  if(!filtered.length)return React.createElement('div',{className:'no-match'},search?'无匹配依赖':'暂无数据');
+  return React.createElement('div',{className:'file-list'},
+    React.createElement('div',{className:'file-header'},
+      React.createElement('span',null,'依赖 ('+imports.length+', '+filtered.length+' 项)')
+    ),
+    filtered.slice(0,80).map(([target,files])=>{
+      const pct=Math.round((files.length/maxCount)*100);
+      return React.createElement(React.Fragment,{key:target},
+        React.createElement('div',{className:'dep-node',onClick:()=>setExpanded(expanded===target?null:target)},
+          React.createElement('span',{className:'dep-name'},target),
+          React.createElement('div',{className:'dep-bar-wrap'},
+            React.createElement('div',{className:'dep-bar',style:{width:pct+'%'}})
+          ),
+          React.createElement('span',{className:'dep-count'},files.length+' 处')
+        ),
+        expanded===target?React.createElement('div',{className:'dep-files open'},
+          files.slice(0,20).sort().map(f=>React.createElement('div',{key:f,className:'dep-file'},f)),
+          files.length>20?React.createElement('div',{style:{color:'#95a5a6',fontSize:'12px',padding:'4px 0'}},'... 还有 '+(files.length-20)+' 处'):null
+        ):null
       );
     })
   );
 }
 
-function FileRow({file}) {
-  return React.createElement('div',{className:'file-row'},
-    React.createElement('div',{className:'name'},file.name),
-    React.createElement('div',{className:'path'},file.path),
-    file.module?React.createElement('div',{className:'module'},file.module):null,
-    file.symbols && file.symbols.length>0 && React.createElement('div',{className:'symbols'},
-      file.symbols.slice(0,5).map((s,i)=>React.createElement('span',{key:i},s.name+' '))
-    )
-  );
-}
-
-function FilesTab({files}) {
-  const [showAll,setShowAll] = useState(false);
-  const total = files.length;
-  const visible = showAll ? files : files.slice(0,50);
-  return React.createElement('div',{className:'file-list'},
-    React.createElement('div',{className:'file-header'},
-      React.createElement('span',null,'文件 ('+total+')'),
-      React.createElement('span',{className:'toggle',onClick:()=>setShowAll(!showAll)},
-        showAll?'收起':'展开全部'
-      )
-    ),
-    visible.map(f=>React.createElement(FileRow,{key:f.path,file:f})),
-    !showAll && total>50 && React.createElement('div',{style:{textAlign:'center',padding:'16px',color:'#95a5a6',fontSize:'13px'}},
-      '显示 50/'+total+' 个文件'
-    )
-  );
-}
-
-function ModuleCard({mod,files}) {
-  const [expanded,setExpanded] = useState(false);
-  const modFiles = files.filter(f=>f.module===mod.name);
-  return React.createElement('div',{className:'module-card',onClick:()=>setExpanded(!expanded)},
-    React.createElement('h4',null,mod.label),
-    React.createElement('div',{className:'file-count'},mod.file_count+' files'),
-    expanded && React.createElement('div',{className:'files'},
-      modFiles.slice(0,20).map(f=>React.createElement('div',{key:f.path},f.name))
-    )
-  );
-}
-
-function ModulesTab({modules,files}) {
-  if(!modules.length) return React.createElement('div',{className:'empty-state'},'暂无模块数据');
-  return React.createElement('div',{className:'module-card-grid'},
-    modules.map(mod=>React.createElement(ModuleCard,{key:mod.name,mod:mod,files:files}))
-  );
-}
-
-function DepsTab({imports}) {
-  const targets = [...new Set(imports.map(i=>i.target))].sort();
-  return React.createElement('div',{className:'file-list'},
-    React.createElement('div',{className:'file-header'},
-      React.createElement('span',null,'依赖 ('+imports.length+')')
-    ),
-    targets.slice(0,60).map(target=>
-      React.createElement('div',{key:target,className:'file-row'},
-        React.createElement('div',{className:'name'},target),
-        React.createElement('div',{className:'path'},imports.filter(i=>i.target===target).length+' 处引用')
-      )
-    )
-  );
-}
-
 function App() {
-  const [tab,setTab] = useState('overview');
-  const {modules=[], files=[], imports=[]} = DATA;
-  const totalFiles = files.length;
+  const [tab,setTab]=useState('overview');
+  const [search,setSearch]=useState('');
+  const [selectedFile,setSelectedFile]=useState(null);
+  const {modules=[],files=[],imports=[]}=DATA;
+  const totalFiles=files.length;
 
-  const tabContent = {
-    overview: React.createElement(OverviewTab,{modules,files,imports}),
-    tree: React.createElement(TreeTab,{modules}),
-    files: React.createElement(FilesTab,{files}),
-    modules: React.createElement(ModulesTab,{modules,files}),
-    deps: React.createElement(DepsTab,{imports}),
-  };
+  const tabEl=useMemo(()=>{
+    switch(tab){
+      case 'overview': return React.createElement(OverviewTab,{modules,files,imports,key:'ov'});
+      case 'tree': return React.createElement(TreeTab,{modules,files,onSelectFile:setSelectedFile,key:'tr'});
+      case 'files': return React.createElement(FilesTab,{files,search,selectedFile,onSelectFile:setSelectedFile,key:'fi'});
+      case 'modules': return React.createElement(ModulesTab,{modules,files,search,onSelectFile:setSelectedFile,key:'mo'});
+      case 'deps': return React.createElement(DepsTab,{imports,search,key:'de'});
+      default: return React.createElement('div',{className:'empty-state'},'未知标签');
+    }
+  },[tab,search,selectedFile,modules,files,imports]);
+
+  const showSearch=tab==='files'||tab==='modules'||tab==='deps';
 
   return React.createElement(React.Fragment,null,
     React.createElement('div',{className:'header'},
@@ -255,14 +413,12 @@ function App() {
       React.createElement('div',{className:'meta'},totalFiles+' 个文件, '+modules.length+' 个模块'+(imports.length?', '+imports.length+' 个依赖':''))
     ),
     React.createElement('div',{className:'tabs'},
-      TABS.map(t=>React.createElement('div',{
-        key:t.key,className:'tab'+(tab===t.key?' active':''),
-        onClick:()=>setTab(t.key)
-      },t.label))
+      TABS.map(t=>React.createElement('div',{key:t.key,className:'tab'+(tab===t.key?' active':''),onClick:()=>setTab(t.key)},t.label))
     ),
-    React.createElement('div',{className:'content'},
-      tabContent[tab]||React.createElement('div',{className:'empty-state'},'未知标签')
-    )
+    showSearch?React.createElement('div',{className:'search-bar'},
+      React.createElement('input',{placeholder:'搜索...',value:search,onChange:e=>{setSearch(e.target.value);setSelectedFile(null)}})
+    ):null,
+    React.createElement('div',{className:'content'},tabEl)
   );
 }
 
